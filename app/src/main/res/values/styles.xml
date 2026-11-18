@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.CinemaHome" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@drawable/bg_main_gradient</item>
+        <item name="colorPrimary">#007BFF</item>
+        <item name="colorAccent">#00A3FF</item>
+    </style>
+</resources>
