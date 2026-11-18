@@ -24,7 +24,7 @@ class AppAdapter(
         val layoutId = if (isGrid) R.layout.item_app_grid else R.layout.item_app_card
         val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
         view.setOnFocusChangeListener { v, hasFocus ->
-            val scale = if (hasFocus) 1.07f else 1.0f
+            val scale = if (hasFocus) 1.06f else 1.0f
             v.animate().scaleX(scale).scaleY(scale).setDuration(120).start()
         }
         return ViewHolder(view)
