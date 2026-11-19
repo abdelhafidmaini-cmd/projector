@@ -156,13 +156,13 @@ class MainActivity : AppCompatActivity() {
         } else {
             Thread {
                 try {
-                    val conn = URL("http://ip-api.com/json/?fields=city,lat,lon").openConnection() as HttpURLConnection
+                    val conn = URL("https://ipwho.is/").openConnection() as HttpURLConnection
                     conn.connectTimeout = 5000
                     conn.readTimeout = 5000
                     val json = JSONObject(conn.inputStream.bufferedReader().readText())
                     val city = json.optString("city", "الطقس")
-                    val lat = json.getDouble("lat")
-                    val lon = json.getDouble("lon")
+                    val lat = json.getDouble("latitude")
+                    val lon = json.getDouble("longitude")
                     fetchWeatherForCoords(city, lat, lon)
                 } catch (_: Exception) {
                     runOnUiThread {
@@ -309,7 +309,7 @@ class MainActivity : AppCompatActivity() {
                         var timeDisplay = detail
                         if (state == "pre" && dateStr.isNotEmpty()) {
                             try {
-                                val cleanDate = dateStr.replace(Regex(":\d{2}Z$"), "Z")
+                                val cleanDate = dateStr.replace(Regex(":[0-9]{2}Z$"), "Z")
                                 val dt = isoFormat.parse(cleanDate)
                                 if (dt != null) timeDisplay = localTimeFormat.format(dt)
                             } catch (_: Exception) {}
