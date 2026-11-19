@@ -3,7 +3,7 @@
     <style name="Theme.CinemaHome" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowBackground">@drawable/bg_main_gradient</item>
-        <item name="colorPrimary">#007BFF</item>
-        <item name="colorAccent">#00A3FF</item>
+        <item name="colorPrimary">#00D4FF</item>
+        <item name="colorAccent">#A855F7</item>
     </style>
 </resources>

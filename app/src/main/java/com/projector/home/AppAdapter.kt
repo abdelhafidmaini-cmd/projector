@@ -24,7 +24,7 @@ class AppAdapter(
         val layoutId = if (isGrid) R.layout.item_app_grid else R.layout.item_app_card
         val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
         view.setOnFocusChangeListener { v, hasFocus ->
-            val scale = if (hasFocus) 1.06f else 1.0f
+            val scale = if (hasFocus) 1.07f else 1.0f
             v.animate().scaleX(scale).scaleY(scale).setDuration(120).start()
         }
         return ViewHolder(view)
@@ -33,12 +33,16 @@ class AppAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         holder.tvName.text = item.label
-        if (item.isAddButton) {
-            holder.ivIcon.setImageDrawable(ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_add))
-        } else if (item.icon != null) {
-            holder.ivIcon.setImageDrawable(item.icon)
-        } else {
-            holder.ivIcon.setImageDrawable(ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_apps))
+        when {
+            item.customIconRes != null -> {
+                holder.ivIcon.setImageDrawable(ContextCompat.getDrawable(holder.itemView.context, item.customIconRes))
+            }
+            item.icon != null -> {
+                holder.ivIcon.setImageDrawable(item.icon)
+            }
+            else -> {
+                holder.ivIcon.setImageDrawable(ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_apps))
+            }
         }
 
         holder.itemView.setOnClickListener { onClick(item) }

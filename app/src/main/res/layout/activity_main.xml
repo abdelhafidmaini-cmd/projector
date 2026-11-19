@@ -7,15 +7,15 @@
     android:clipToPadding="false"
     android:layoutDirection="ltr"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="18dp">
 
     <!-- Top Status Bar -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:layout_marginBottom="8dp">
+        android:layout_marginBottom="12dp">
 
-        <!-- Left System Icons -->
+        <!-- Left Quick System Icons -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -37,7 +37,7 @@
                 android:id="@+id/btnBluetooth"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="8dp"
                 android:background="@drawable/bg_top_icon"
                 android:focusable="true"
                 android:padding="7dp"
@@ -48,31 +48,15 @@
                 android:id="@+id/btnSettings"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="8dp"
                 android:background="@drawable/bg_top_icon"
                 android:focusable="true"
                 android:padding="7dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_settings" />
-
-            <View
-                android:layout_width="1dp"
-                android:layout_height="18dp"
-                android:layout_marginHorizontal="10dp"
-                android:background="#44FFFFFF" />
-
-            <ImageButton
-                android:id="@+id/btnNotifications"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="@drawable/bg_top_icon"
-                android:focusable="true"
-                android:padding="7dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_bell" />
         </LinearLayout>
 
-        <!-- Right Date & Time -->
+        <!-- Right Temp • Date | Clock -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -81,18 +65,35 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/tvTopWeather"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--°C"
+                android:textColor="#FACC15"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:text="•"
+                android:textColor="#94A3B8"
+                android:textSize="14sp" />
+
+            <TextView
                 android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="الأربعاء، 18 نوفمبر 2026"
-                android:textColor="#D0DCF5"
+                android:text="الخميس 19 نوفمبر"
+                android:textColor="#E2E8F0"
                 android:textSize="14sp" />
 
             <View
                 android:layout_width="1dp"
                 android:layout_height="16dp"
-                android:layout_marginHorizontal="12dp"
-                android:background="#44FFFFFF" />
+                android:layout_marginHorizontal="10dp"
+                android:background="#55FFFFFF" />
 
             <TextClock
                 android:id="@+id/tvClock"
@@ -101,445 +102,403 @@
                 android:format12Hour="HH:mm"
                 android:format24Hour="HH:mm"
                 android:textColor="#FFFFFF"
-                android:textSize="21sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- Main Body: Sidebar + Content -->
+    <!-- HOME DASHBOARD (4 Bento Widgets + Bottom Neon Dock) -->
     <LinearLayout
+        android:id="@+id/homeContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
-        <!-- Left Navigation Sidebar -->
+        <!-- Middle Row: 4 Bento Neon Widgets -->
         <LinearLayout
-            android:layout_width="185dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="16dp"
-            android:orientation="vertical">
-
-            <!-- 1. الرئيسية -->
-            <LinearLayout
-                android:id="@+id/navHome"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/bg_sidebar_item"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="14dp">
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_home" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="الرئيسية"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- 2. التطبيقات -->
-            <LinearLayout
-                android:id="@+id/navApps"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/bg_sidebar_item"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="14dp">
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_apps" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="التطبيقات"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15sp" />
-            </LinearLayout>
-
-            <!-- 3. ملفاتي (File Manager) -->
-            <LinearLayout
-                android:id="@+id/navFiles"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/bg_sidebar_item"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="14dp">
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_folder" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="ملفاتي"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15sp" />
-            </LinearLayout>
-
-            <!-- 4. الإعدادات -->
-            <LinearLayout
-                android:id="@+id/navSettings"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/bg_sidebar_item"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="14dp">
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_settings" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="الإعدادات"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <!-- Memory Cleaner Card -->
-            <LinearLayout
-                android:id="@+id/btnCleanMemory"
-                android:layout_width="match_parent"
-                android:layout_height="64dp"
-                android:background="@drawable/bg_ram_card"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="12dp">
-
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_rocket" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="8dp"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="تنظيف الذاكرة"
-                        android:textColor="#FFFFFF"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvRamStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="تحسين الأداء"
-                        android:textColor="#93C5FD"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Right Content Area -->
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="16dp"
             android:layout_weight="1"
             android:clipChildren="false"
-            android:clipToPadding="false">
+            android:clipToPadding="false"
+            android:orientation="horizontal">
 
-            <!-- HOME SECTION -->
-            <ScrollView
-                android:id="@+id/homeContainer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:orientation="vertical">
-
-                    <!-- Dynamic Hero Widget (10% smaller: 174dp) -->
-                    <RelativeLayout
-                        android:id="@+id/heroWidgetCard"
-                        android:layout_width="match_parent"
-                        android:layout_height="174dp"
-                        android:layout_marginBottom="12dp"
-                        android:background="@drawable/bg_hero_banner"
-                        android:padding="18dp">
-
-                        <!-- Custom AppWidget Host Container (shown if user picks a system widget) -->
-                        <FrameLayout
-                            android:id="@+id/customWidgetHostContainer"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:visibility="gone" />
-
-                        <!-- Built-in Dynamic Carousel Content -->
-                        <RelativeLayout
-                            android:id="@+id/builtInWidgetContent"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-                            <ImageView
-                                android:id="@+id/ivHeroIcon"
-                                android:layout_width="110dp"
-                                android:layout_height="110dp"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:alpha="0.95"
-                                android:src="@drawable/ic_android" />
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentStart="true"
-                                android:layout_centerVertical="true"
-                                android:layout_toStartOf="@id/ivHeroIcon"
-                                android:layout_marginEnd="16dp"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:id="@+id/tvHeroBadge"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Android TV"
-                                    android:textColor="#93C5FD"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/tvHeroTitle"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
-                                    android:text="عالم من الترفيه بين يديك"
-                                    android:textColor="#FFFFFF"
-                                    android:textSize="24sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/tvHeroSubtitle"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
-                                    android:text="اضغط للانتقال إلى تطبيقاتك أو تبديل الويدجت"
-                                    android:textColor="#E2E8F0"
-                                    android:textSize="14sp" />
-
-                                <LinearLayout
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="12dp"
-                                    android:orientation="horizontal">
-
-                                    <LinearLayout
-                                        android:id="@+id/btnHeroAction"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="36dp"
-                                        android:background="@drawable/bg_cta_button"
-                                        android:focusable="true"
-                                        android:gravity="center"
-                                        android:orientation="horizontal"
-                                        android:paddingHorizontal="18dp">
-
-                                        <TextView
-                                            android:id="@+id/tvHeroAction"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text="مشاهدة الآن"
-                                            android:textColor="#FFFFFF"
-                                            android:textSize="13sp"
-                                            android:textStyle="bold" />
-
-                                        <ImageView
-                                            android:layout_width="16dp"
-                                            android:layout_height="16dp"
-                                            android:layout_marginStart="6dp"
-                                            android:src="@drawable/ic_play" />
-                                    </LinearLayout>
-
-                                    <TextView
-                                        android:id="@+id/btnPickWidget"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="36dp"
-                                        android:layout_marginStart="10dp"
-                                        android:background="@drawable/bg_app_card"
-                                        android:focusable="true"
-                                        android:gravity="center"
-                                        android:paddingHorizontal="14dp"
-                                        android:text="+ ويدجت"
-                                        android:textColor="#E2E8F0"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-                            </LinearLayout>
-                        </RelativeLayout>
-                    </RelativeLayout>
-
-                    <!-- Favorite Apps Header -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:gravity="end|center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="تطبيقاتك المفضلة"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:text="★"
-                            android:textColor="#FACC15"
-                            android:textSize="15sp" />
-                    </LinearLayout>
-
-                    <!-- Favorite Apps RecyclerView (extra vertical padding so focus scale never clips) -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvFavoriteApps"
-                        android:layout_width="match_parent"
-                        android:layout_height="108dp"
-                        android:layout_marginBottom="8dp"
-                        android:clipChildren="false"
-                        android:clipToPadding="false"
-                        android:paddingHorizontal="6dp"
-                        android:paddingVertical="8dp" />
-
-                    <!-- Quick Apps Header -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:gravity="end|center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="تطبيقات البروجكتور"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:text="⚡"
-                            android:textSize="14sp" />
-                    </LinearLayout>
-
-                    <!-- Quick Apps Row (extra vertical padding so focus scale never clips) -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvAllAppsPreview"
-                        android:layout_width="match_parent"
-                        android:layout_height="108dp"
-                        android:clipChildren="false"
-                        android:clipToPadding="false"
-                        android:paddingHorizontal="6dp"
-                        android:paddingVertical="8dp" />
-
-                </LinearLayout>
-            </ScrollView>
-
-            <!-- ALL APPS GRID SECTION -->
+            <!-- 1. Weather Widget (Real Location-Based) -->
             <LinearLayout
-                android:id="@+id/appsContainer"
-                android:layout_width="match_parent"
+                android:id="@+id/cardWeather"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:clipChildren="false"
-                android:clipToPadding="false"
+                android:layout_marginEnd="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_bento_weather"
+                android:focusable="true"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:padding="16dp">
 
                 <TextView
-                    android:id="@+id/tvAppsTitle"
+                    android:id="@+id/tvWeatherCity"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
+                    android:ellipsize="end"
                     android:gravity="end"
-                    android:text="جميع التطبيقات المثبتة (اضغط مطولاً للتثبيت في المفضلة)"
+                    android:maxLines="1"
+                    android:text="الطقس"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvAllAppsGrid"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:padding="8dp" />
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvWeatherTemp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--°C"
+                            android:textColor="#FFFFFF"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvWeatherDesc"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="جاري التحديث..."
+                            android:textColor="#CBD5E1"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="10dp"
+                        android:src="@drawable/ic_weather" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="اضغط لتغيير المدينة"
+                    android:textColor="#7DD3FC"
+                    android:textSize="11sp" />
             </LinearLayout>
 
-        </FrameLayout>
+            <!-- 2. Today's Matches Widget (Real ESPN Scoreboard) -->
+            <LinearLayout
+                android:id="@+id/cardMatches"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_bento_sports"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="مباريات اليوم"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginBottom="8dp"
+                        android:src="@drawable/ic_sports" />
+
+                    <TextView
+                        android:id="@+id/tvMatchTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:gravity="center"
+                        android:maxLines="2"
+                        android:text="جاري جلب جدول اليوم..."
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvMatchBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_red"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="3dp"
+                        android:text="مباشر"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvMatchTime"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="عرض الجدول ›"
+                        android:textColor="#E2E8F0"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 3. Now on YouTube Widget -->
+            <LinearLayout
+                android:id="@+id/cardYouTube"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_bento_youtube"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="الآن على يوتيوب"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="54dp"
+                        android:layout_height="54dp"
+                        android:src="@drawable/ic_youtube" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:text="تشغيل فيديوهات YouTube"
+                        android:textColor="#E2E8F0"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_magenta"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="3dp"
+                        android:text="رائج"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="فتح ▶"
+                        android:textColor="#F0ABFC"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 4. System Boost & Real RAM Cleaner Widget -->
+            <LinearLayout
+                android:id="@+id/cardRamBoost"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_bento_ram"
+                android:focusable="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="تسريع النظام"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <FrameLayout
+                    android:layout_width="90dp"
+                    android:layout_height="90dp"
+                    android:layout_marginVertical="6dp">
+
+                    <ProgressBar
+                        android:id="@+id/pbRam"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:indeterminate="false"
+                        android:max="100"
+                        android:progress="65"
+                        android:progressDrawable="@drawable/ram_ring_progress" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="RAM"
+                            android:textColor="#94A3B8"
+                            android:textSize="10sp" />
+
+                        <TextView
+                            android:id="@+id/tvRamAvail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="495"
+                            android:textColor="#FFFFFF"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="MB متاح"
+                            android:textColor="#94A3B8"
+                            android:textSize="9sp" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvCleanBtnLabel"
+                    android:layout_width="110dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/bg_pill_cyan"
+                    android:gravity="center"
+                    android:text="تنظيف"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Bottom Neon Dock Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="146dp"
+            android:background="@drawable/bg_dock_container"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="10dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvDockApps"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ALL INSTALLED APPS GRID (opened from Dock "التطبيقات") -->
+    <LinearLayout
+        android:id="@+id/appsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:id="@+id/btnBackHome"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_alignParentStart="true"
+                android:background="@drawable/bg_pill_cyan"
+                android:focusable="true"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:text="‹ الرئيسية"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="جميع التطبيقات المثبتة (اضغط مطولاً للتثبيت في الشريط)"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAllAppsGrid"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:padding="10dp" />
     </LinearLayout>
 </LinearLayout>

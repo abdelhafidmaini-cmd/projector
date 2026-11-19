@@ -1,24 +1,17 @@
 package com.projector.home
 
-import android.app.Activity
 import android.app.ActivityManager
-import android.appwidget.AppWidgetHost
-import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.provider.Settings
 import android.view.View
-import android.widget.FrameLayout
+import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
-import android.widget.ScrollView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -29,127 +22,90 @@ import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var navHome: LinearLayout
-    private lateinit var navApps: LinearLayout
-    private lateinit var navFiles: LinearLayout
-    private lateinit var navSettings: LinearLayout
-
-    private lateinit var homeContainer: ScrollView
+    private lateinit var homeContainer: LinearLayout
     private lateinit var appsContainer: LinearLayout
-    private lateinit var tvAppsTitle: TextView
-    private lateinit var tvRamStatus: TextView
-
-    private lateinit var rvFavoriteApps: RecyclerView
-    private lateinit var rvAllAppsPreview: RecyclerView
+    private lateinit var rvDockApps: RecyclerView
     private lateinit var rvAllAppsGrid: RecyclerView
 
-    // Dynamic Hero Widget Views
-    private lateinit var customWidgetHostContainer: FrameLayout
-    private lateinit var builtInWidgetContent: RelativeLayout
-    private lateinit var ivHeroIcon: ImageView
-    private lateinit var tvHeroBadge: TextView
-    private lateinit var tvHeroTitle: TextView
-    private lateinit var tvHeroSubtitle: TextView
-    private lateinit var tvHeroAction: TextView
-    private lateinit var btnHeroAction: LinearLayout
-    private lateinit var btnPickWidget: TextView
+    private lateinit var tvTopWeather: TextView
+    private lateinit var tvWeatherCity: TextView
+    private lateinit var tvWeatherTemp: TextView
+    private lateinit var tvWeatherDesc: TextView
 
-    private lateinit var appWidgetManager: AppWidgetManager
-    private lateinit var appWidgetHost: AppWidgetHost
-    private val appWidgetHostId = 1024
-    private val reqPickWidget = 2001
-    private val reqCreateWidget = 2002
+    private lateinit var tvMatchTitle: TextView
+    private lateinit var tvMatchBadge: TextView
+    private lateinit var tvMatchTime: TextView
+
+    private lateinit var pbRam: ProgressBar
+    private lateinit var tvRamAvail: TextView
 
     private var allInstalledApps: List<AppItem> = emptyList()
-    private val prefsName = "cinema_home_prefs"
-    private val keyFavorites = "favorite_packages"
-    private val keySavedWidgetId = "saved_app_widget_id"
+    private val todayMatchesList = mutableListOf<String>()
 
-    private var weatherSummary = "جاري جلب حالة الطقس..."
-    private var currentSlide = 0
-    private val carouselHandler = Handler(Looper.getMainLooper())
-    private val carouselRunnable = object : Runnable {
-        override fun run() {
-            if (customWidgetHostContainer.visibility != View.VISIBLE) {
-                currentSlide = (currentSlide + 1) % 4
-                renderDynamicSlide(currentSlide)
-            }
-            carouselHandler.postDelayed(this, 7000)
-        }
-    }
+    private val prefsName = "cinema_home_prefs"
+    private val keyDockPackages = "dock_packages"
+    private val keyCityName = "weather_city_name"
+    private val keyCityLat = "weather_city_lat"
+    private val keyCityLon = "weather_city_lon"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        appWidgetManager = AppWidgetManager.getInstance(this)
-        appWidgetHost = AppWidgetHost(this, appWidgetHostId)
-
         initViews()
         updateArabicDateWithWesternDigits()
         setupTopBar()
-        setupSidebar()
+        setupWidgets()
         loadInstalledApps()
-        setupLists()
-        restoreOrStartDynamicWidget()
-        fetchLiveWeather()
-
-        selectTab(navHome)
-        navHome.requestFocus()
+        setupDockAndGrid()
+        updateRamWidget()
+        loadLocationAndWeather()
+        fetchTodayMatches()
     }
 
-    override fun onStart() {
-        super.onStart()
-        appWidgetHost.startListening()
-        carouselHandler.removeCallbacks(carouselRunnable)
-        carouselHandler.postDelayed(carouselRunnable, 7000)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        appWidgetHost.stopListening()
-        carouselHandler.removeCallbacks(carouselRunnable)
+    override fun onResume() {
+        super.onResume()
+        updateRamWidget()
+        updateArabicDateWithWesternDigits()
     }
 
     private fun initViews() {
-        navHome = findViewById(R.id.navHome)
-        navApps = findViewById(R.id.navApps)
-        navFiles = findViewById(R.id.navFiles)
-        navSettings = findViewById(R.id.navSettings)
-
         homeContainer = findViewById(R.id.homeContainer)
         appsContainer = findViewById(R.id.appsContainer)
-        tvAppsTitle = findViewById(R.id.tvAppsTitle)
-        tvRamStatus = findViewById(R.id.tvRamStatus)
-
-        rvFavoriteApps = findViewById(R.id.rvFavoriteApps)
-        rvAllAppsPreview = findViewById(R.id.rvAllAppsPreview)
+        rvDockApps = findViewById(R.id.rvDockApps)
         rvAllAppsGrid = findViewById(R.id.rvAllAppsGrid)
 
-        customWidgetHostContainer = findViewById(R.id.customWidgetHostContainer)
-        builtInWidgetContent = findViewById(R.id.builtInWidgetContent)
-        ivHeroIcon = findViewById(R.id.ivHeroIcon)
-        tvHeroBadge = findViewById(R.id.tvHeroBadge)
-        tvHeroTitle = findViewById(R.id.tvHeroTitle)
-        tvHeroSubtitle = findViewById(R.id.tvHeroSubtitle)
-        tvHeroAction = findViewById(R.id.tvHeroAction)
-        btnHeroAction = findViewById(R.id.btnHeroAction)
-        btnPickWidget = findViewById(R.id.btnPickWidget)
+        tvTopWeather = findViewById(R.id.tvTopWeather)
+        tvWeatherCity = findViewById(R.id.tvWeatherCity)
+        tvWeatherTemp = findViewById(R.id.tvWeatherTemp)
+        tvWeatherDesc = findViewById(R.id.tvWeatherDesc)
 
-        btnPickWidget.setOnClickListener { showWidgetOptionsDialog() }
-        findViewById<LinearLayout>(R.id.btnCleanMemory).setOnClickListener { cleanMemory() }
+        tvMatchTitle = findViewById(R.id.tvMatchTitle)
+        tvMatchBadge = findViewById(R.id.tvMatchBadge)
+        tvMatchTime = findViewById(R.id.tvMatchTime)
+
+        pbRam = findViewById(R.id.pbRam)
+        tvRamAvail = findViewById(R.id.tvRamAvail)
+
+        findViewById<TextView>(R.id.btnBackHome).setOnClickListener {
+            appsContainer.visibility = View.GONE
+            homeContainer.visibility = View.VISIBLE
+            rvDockApps.requestFocus()
+        }
     }
 
     private fun updateArabicDateWithWesternDigits() {
         val tvDate = findViewById<TextView>(R.id.tvDate)
         val locale = Locale("ar", "DZ")
-        val sdf = SimpleDateFormat("EEEE، d MMMM yyyy", locale)
+        val sdf = SimpleDateFormat("EEEE d MMMM", locale)
         val formatted = sdf.format(Date())
             .replace('٠', '0').replace('١', '1').replace('٢', '2')
             .replace('٣', '3').replace('٤', '4').replace('٥', '5')
@@ -167,216 +123,302 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.btnSettings).setOnClickListener {
             openSettings(Settings.ACTION_SETTINGS)
         }
-        findViewById<ImageButton>(R.id.btnNotifications).setOnClickListener {
-            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            val mi = ActivityManager.MemoryInfo()
-            am.getMemoryInfo(mi)
-            val availMb = mi.availMem / (1024 * 1024)
-            Toast.makeText(this, "الذاكرة المتاحة: $availMb MB", Toast.LENGTH_SHORT).show()
-        }
     }
 
-    private fun setupSidebar() {
-        navHome.setOnClickListener {
-            selectTab(navHome)
-            homeContainer.visibility = View.VISIBLE
-            appsContainer.visibility = View.GONE
-        }
+    private fun setupWidgets() {
+        val cardWeather = findViewById<LinearLayout>(R.id.cardWeather)
+        val cardMatches = findViewById<LinearLayout>(R.id.cardMatches)
+        val cardYouTube = findViewById<LinearLayout>(R.id.cardYouTube)
+        val cardRamBoost = findViewById<LinearLayout>(R.id.cardRamBoost)
 
-        navApps.setOnClickListener {
-            selectTab(navApps)
-            homeContainer.visibility = View.GONE
-            appsContainer.visibility = View.VISIBLE
-            tvAppsTitle.text = "جميع التطبيقات المثبتة (اضغط مطولاً للتثبيت في المفضلة)"
-            (rvAllAppsGrid.adapter as? AppAdapter)?.updateData(allInstalledApps)
-        }
-
-        navFiles.setOnClickListener {
-            openFileManager()
-        }
-
-        navSettings.setOnClickListener {
-            openSettings(Settings.ACTION_SETTINGS)
-        }
-    }
-
-    private fun selectTab(active: LinearLayout) {
-        listOf(navHome, navApps, navFiles, navSettings).forEach {
-            it.isSelected = (it == active)
-        }
-    }
-
-    private fun renderDynamicSlide(index: Int) {
-        when (index) {
-            0 -> {
-                tvHeroBadge.text = "YouTube & ترفيه"
-                tvHeroTitle.text = "فيديوهات ومقترحات اليوم"
-                tvHeroSubtitle.text = "افتح YouTube مباشرة لمشاهدة أحدث الفيديوهات"
-                tvHeroAction.text = "فتح YouTube"
-                ivHeroIcon.setImageResource(R.drawable.ic_youtube)
-                btnHeroAction.setOnClickListener { launchYouTube() }
+        listOf(cardWeather, cardMatches, cardYouTube, cardRamBoost).forEach { card ->
+            card.setOnFocusChangeListener { v, hasFocus ->
+                val scale = if (hasFocus) 1.03f else 1.0f
+                v.animate().scaleX(scale).scaleY(scale).setDuration(120).start()
             }
-            1 -> {
-                tvHeroBadge.text = "الطقس والتوقيت المباشر"
-                tvHeroTitle.text = weatherSummary
-                val timeNow = SimpleDateFormat("HH:mm", Locale.US).format(Date())
-                tvHeroSubtitle.text = "التوقيت الحالي: $timeNow • تحديث تلقائي"
-                tvHeroAction.text = "تحديث الطقس"
-                ivHeroIcon.setImageResource(R.drawable.ic_weather)
-                btnHeroAction.setOnClickListener {
-                    fetchLiveWeather()
-                    Toast.makeText(this, "تم تحديث الطقس", Toast.LENGTH_SHORT).show()
+        }
+
+        cardWeather.setOnClickListener { showCitySearchDialog() }
+        cardMatches.setOnClickListener { showMatchesScheduleDialog() }
+        cardYouTube.setOnClickListener { launchYouTube() }
+        cardRamBoost.setOnClickListener { performRealMemoryClean() }
+    }
+
+    // --- 1. REAL LOCATION-BASED WEATHER ---
+    private fun loadLocationAndWeather() {
+        val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+        val savedCity = prefs.getString(keyCityName, null)
+        val savedLat = prefs.getFloat(keyCityLat, Float.NaN)
+        val savedLon = prefs.getFloat(keyCityLon, Float.NaN)
+
+        if (savedCity != null && !savedLat.isNaN() && !savedLon.isNaN()) {
+            fetchWeatherForCoords(savedCity, savedLat.toDouble(), savedLon.toDouble())
+        } else {
+            Thread {
+                try {
+                    val conn = URL("http://ip-api.com/json/?fields=city,lat,lon").openConnection() as HttpURLConnection
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+                    val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                    val city = json.optString("city", "الطقس")
+                    val lat = json.getDouble("lat")
+                    val lon = json.getDouble("lon")
+                    fetchWeatherForCoords(city, lat, lon)
+                } catch (_: Exception) {
+                    runOnUiThread {
+                        tvWeatherDesc.text = "اضغط لتحديد مدينتك"
+                    }
                 }
-            }
-            2 -> {
-                tvHeroBadge.text = "مباريات اليوم والرياضة"
-                tvHeroTitle.text = "جدول المباريات والبث المباشر"
-                tvHeroSubtitle.text = "افتح تطبيق IPTV أو YouTube لمتابعة مباريات اليوم"
-                tvHeroAction.text = "متابعة المباريات"
-                ivHeroIcon.setImageResource(R.drawable.ic_sports)
-                btnHeroAction.setOnClickListener { launchSportsOrIptv() }
-            }
-            else -> {
-                val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-                val mi = ActivityManager.MemoryInfo()
-                am.getMemoryInfo(mi)
-                val availMb = mi.availMem / (1024 * 1024)
-                tvHeroBadge.text = "Android TV • نظام البروجكتور"
-                tvHeroTitle.text = "الذاكرة المتاحة: $availMb MB"
-                tvHeroSubtitle.text = "عدد التطبيقات المثبتة: ${allInstalledApps.size} تطبيق"
-                tvHeroAction.text = "عرض التطبيقات"
-                ivHeroIcon.setImageResource(R.drawable.ic_android)
-                btnHeroAction.setOnClickListener { navApps.performClick() }
-            }
+            }.start()
         }
     }
 
-    private fun fetchLiveWeather() {
+    private fun fetchWeatherForCoords(cityName: String, lat: Double, lon: Double) {
         Thread {
             try {
-                val url = URL("https://api.open-meteo.com/v1/forecast?latitude=29.2631&longitude=0.2310&current_weather=true")
+                val url = URL("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current_weather=true")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.connectTimeout = 5000
                 conn.readTimeout = 5000
-                val text = conn.inputStream.bufferedReader().readText()
-                val current = JSONObject(text).getJSONObject("current_weather")
+                val root = JSONObject(conn.inputStream.bufferedReader().readText())
+                val current = root.getJSONObject("current_weather")
                 val temp = current.getDouble("temperature").toInt()
-                val wind = current.getDouble("windspeed").toInt()
-                weatherSummary = "الطقس الآن: $temp°C • الرياح $wind km/h"
+                val code = current.getInt("weathercode")
+                val desc = weatherCodeToArabic(code)
+
                 runOnUiThread {
-                    if (currentSlide == 1) renderDynamicSlide(1)
+                    tvWeatherCity.text = "الطقس • $cityName"
+                    tvWeatherTemp.text = "$temp°C"
+                    tvWeatherDesc.text = desc
+                    tvTopWeather.text = "$temp°C"
                 }
             } catch (_: Exception) {
-                weatherSummary = "الطقس: غير متصل بالإنترنت"
+                runOnUiThread {
+                    tvWeatherDesc.text = "غير متصل"
+                }
             }
         }.start()
     }
 
-    private fun showWidgetOptionsDialog() {
-        val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        val savedId = prefs.getInt(keySavedWidgetId, -1)
-        val options = if (savedId != -1) {
-            arrayOf("اختيار ويدجت من تطبيقات الجهاز", "العودة إلى الويدجت الديناميكي المدمج")
-        } else {
-            arrayOf("اختيار ويدجت من تطبيقات الجهاز", "تبديل البطاقة الحالية")
-        }
+    private fun weatherCodeToArabic(code: Int): String = when (code) {
+        0 -> "صافي"
+        1, 2 -> "غائم جزئياً"
+        3 -> "غائم"
+        45, 48 -> "ضباب"
+        51, 53, 55, 61, 63, 65, 80, 81, 82 -> "ممطر"
+        95, 96, 99 -> "عواصف رعدية"
+        else -> "معتدل"
+    }
 
+    private fun showCitySearchDialog() {
+        val input = EditText(this).apply {
+            hint = "اكتب اسم المدينة (مثال: Algiers, Timimoun, Oran)"
+        }
         AlertDialog.Builder(this)
-            .setTitle("إعدادات الويدجت")
-            .setItems(options) { _, which ->
-                if (which == 0) {
-                    launchSystemWidgetPicker()
-                } else if (savedId != -1) {
-                    appWidgetHost.deleteAppWidgetId(savedId)
-                    prefs.edit().remove(keySavedWidgetId).apply()
-                    customWidgetHostContainer.removeAllViews()
-                    customWidgetHostContainer.visibility = View.GONE
-                    builtInWidgetContent.visibility = View.VISIBLE
-                } else {
-                    currentSlide = (currentSlide + 1) % 4
-                    renderDynamicSlide(currentSlide)
-                }
+            .setTitle("تغيير منطقة الطقس")
+            .setView(input)
+            .setPositiveButton("حفظ وتحديث") { _, _ ->
+                val cityQuery = input.text.toString().trim()
+                if (cityQuery.isNotEmpty()) searchAndSaveCity(cityQuery)
+            }
+            .setNeutralButton("تحديد تلقائي") { _, _ ->
+                getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit()
+                    .remove(keyCityName).remove(keyCityLat).remove(keyCityLon).apply()
+                loadLocationAndWeather()
             }
             .setNegativeButton("إلغاء", null)
             .show()
     }
 
-    private fun launchSystemWidgetPicker() {
-        try {
-            val appWidgetId = appWidgetHost.allocateAppWidgetId()
-            val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK).apply {
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            }
-            startActivityForResult(pickIntent, reqPickWidget)
-        } catch (_: Exception) {
-            Toast.makeText(this, "نظام البروجكتور لا يدعم نافذة اختيار الويدجت الخارجية", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun restoreOrStartDynamicWidget() {
-        val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        val savedId = prefs.getInt(keySavedWidgetId, -1)
-        if (savedId != -1) {
-            val info = appWidgetManager.getAppWidgetInfo(savedId)
-            if (info != null) {
-                attachHostWidget(savedId)
-                return
-            }
-        }
-        renderDynamicSlide(0)
-    }
-
-    private fun attachHostWidget(appWidgetId: Int) {
-        val info = appWidgetManager.getAppWidgetInfo(appWidgetId) ?: return
-        val hostView = appWidgetHost.createView(this, appWidgetId, info)
-        hostView.setAppWidget(appWidgetId, info)
-        customWidgetHostContainer.removeAllViews()
-        customWidgetHostContainer.addView(hostView)
-        customWidgetHostContainer.visibility = View.VISIBLE
-        builtInWidgetContent.visibility = View.GONE
-        customWidgetHostContainer.setOnLongClickListener {
-            showWidgetOptionsDialog()
-            true
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK && data != null) {
-            val appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-            if (appWidgetId == -1) return
-            if (requestCode == reqPickWidget) {
-                val info = appWidgetManager.getAppWidgetInfo(appWidgetId)
-                if (info?.configure != null) {
-                    val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE).apply {
-                        component = info.configure
-                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                    }
-                    startActivityForResult(intent, reqCreateWidget)
+    private fun searchAndSaveCity(query: String) {
+        Thread {
+            try {
+                val encoded = URLEncoder.encode(query, "UTF-8")
+                val url = URL("https://geocoding-api.open-meteo.com/v1/search?name=$encoded&count=1&language=ar")
+                val conn = url.openConnection() as HttpURLConnection
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                val results = json.optJSONArray("results")
+                if (results != null && results.length() > 0) {
+                    val first = results.getJSONObject(0)
+                    val name = first.getString("name")
+                    val lat = first.getDouble("latitude")
+                    val lon = first.getDouble("longitude")
+                    getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit()
+                        .putString(keyCityName, name)
+                        .putFloat(keyCityLat, lat.toFloat())
+                        .putFloat(keyCityLon, lon.toFloat())
+                        .apply()
+                    fetchWeatherForCoords(name, lat, lon)
                 } else {
-                    saveAndAttachWidget(appWidgetId)
+                    runOnUiThread {
+                        Toast.makeText(this, "لم يتم العثور على المدينة", Toast.LENGTH_SHORT).show()
+                    }
                 }
-            } else if (requestCode == reqCreateWidget) {
-                saveAndAttachWidget(appWidgetId)
+            } catch (_: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "تعذر الاتصال بالإنترنت", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
+    // --- 2. REAL TODAY'S FOOTBALL MATCHES SCHEDULE ---
+    private fun fetchTodayMatches() {
+        Thread {
+            try {
+                val conn = URL("https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard").openConnection() as HttpURLConnection
+                conn.connectTimeout = 6000
+                conn.readTimeout = 6000
+                val root = JSONObject(conn.inputStream.bufferedReader().readText())
+                val events = root.optJSONArray("events")
+
+                val parsed = mutableListOf<String>()
+                var featuredTitle = "لا توجد مباريات مسجلة الآن"
+                var featuredBadge = "اليوم"
+                var featuredTime = "عرض الكل"
+
+                if (events != null) {
+                    val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }
+                    val localTimeFormat = SimpleDateFormat("HH:mm", Locale.US)
+
+                    for (i in 0 until events.length()) {
+                        val ev = events.getJSONObject(i)
+                        val name = ev.optString("shortName", ev.optString("name", ""))
+                        val dateStr = ev.optString("date", "")
+                        val statusObj = ev.optJSONObject("status")?.optJSONObject("type")
+                        val state = statusObj?.optString("state", "") ?: ""
+                        val detail = statusObj?.optString("shortDetail", "") ?: ""
+
+                        val comp = ev.optJSONArray("competitions")?.optJSONObject(0)
+                        val competitors = comp?.optJSONArray("competitors")
+                        var scoreText = ""
+                        if (competitors != null && competitors.length() >= 2) {
+                            val t1 = competitors.getJSONObject(0)
+                            val t2 = competitors.getJSONObject(1)
+                            val n1 = t1.optJSONObject("team")?.optString("shortDisplayName", "") ?: ""
+                            val n2 = t2.optJSONObject("team")?.optString("shortDisplayName", "") ?: ""
+                            val s1 = t1.optString("score", "0")
+                            val s2 = t2.optString("score", "0")
+                            scoreText = if (state == "pre") "$n1 vs $n2" else "$n1 $s1 - $s2 $n2"
+                        } else {
+                            scoreText = name
+                        }
+
+                        var timeDisplay = detail
+                        if (state == "pre" && dateStr.isNotEmpty()) {
+                            try {
+                                val cleanDate = dateStr.replace(Regex(":\d{2}Z$"), "Z")
+                                val dt = isoFormat.parse(cleanDate)
+                                if (dt != null) timeDisplay = localTimeFormat.format(dt)
+                            } catch (_: Exception) {}
+                        }
+
+                        val line = "[$timeDisplay] $scoreText"
+                        parsed.add(line)
+
+                        if (i == 0) {
+                            featuredTitle = scoreText
+                            featuredBadge = if (state == "in") "مباشر" else if (state == "post") "انتهت" else "اليوم"
+                            featuredTime = "$timeDisplay (${events.length()} مباراة)"
+                        }
+                    }
+                }
+
+                runOnUiThread {
+                    todayMatchesList.clear()
+                    todayMatchesList.addAll(parsed)
+                    tvMatchTitle.text = featuredTitle
+                    tvMatchBadge.text = featuredBadge
+                    tvMatchTime.text = featuredTime
+                }
+            } catch (_: Exception) {
+                runOnUiThread {
+                    tvMatchTitle.text = "اضغط لفتح البث المباشر"
+                    tvMatchBadge.text = "IPTV"
+                    tvMatchTime.text = "تحديث"
+                }
+            }
+        }.start()
+    }
+
+    private fun showMatchesScheduleDialog() {
+        val items = if (todayMatchesList.isNotEmpty()) {
+            todayMatchesList.toTypedArray()
+        } else {
+            arrayOf("لم يتم تحميل جدول المباريات (تأكد من الاتصال بالإنترنت)")
+        }
+        AlertDialog.Builder(this)
+            .setTitle("جدول مباريات اليوم (${todayMatchesList.size})")
+            .setItems(items) { _, _ -> launchSportsOrIptv() }
+            .setPositiveButton("فتح IPTV") { _, _ -> launchSportsOrIptv() }
+            .setNeutralButton("تحديث") { _, _ -> fetchTodayMatches() }
+            .setNegativeButton("إغلاق", null)
+            .show()
+    }
+
+    // --- 3. REAL SYSTEM MEMORY CLEANING ---
+    private fun updateRamWidget() {
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val mi = ActivityManager.MemoryInfo()
+        am.getMemoryInfo(mi)
+        val availMb = (mi.availMem / (1024 * 1024)).toInt()
+        val totalMb = (mi.totalMem / (1024 * 1024)).toInt().coerceAtLeast(1)
+        val usedPercent = (((totalMb - availMb) * 100) / totalMb).coerceIn(5, 98)
+
+        tvRamAvail.text = availMb.toString()
+        pbRam.progress = usedPercent
+    }
+
+    private fun performRealMemoryClean() {
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val before = ActivityManager.MemoryInfo()
+        am.getMemoryInfo(before)
+        val beforeMb = before.availMem / (1024 * 1024)
+
+        var killedCount = 0
+        val running = am.runningAppProcesses ?: emptyList()
+        for (proc in running) {
+            if (proc.processName != packageName) {
+                for (pkg in proc.pkgList) {
+                    if (pkg != packageName) {
+                        try {
+                            am.killBackgroundProcesses(pkg)
+                            killedCount++
+                        } catch (_: Exception) {}
+                    }
+                }
             }
         }
+        for (app in allInstalledApps) {
+            if (app.packageName != packageName) {
+                try {
+                    am.killBackgroundProcesses(app.packageName)
+                } catch (_: Exception) {}
+            }
+        }
+
+        try {
+            cacheDir?.deleteRecursively()
+        } catch (_: Exception) {}
+        System.gc()
+        Runtime.getRuntime().gc()
+
+        val after = ActivityManager.MemoryInfo()
+        am.getMemoryInfo(after)
+        val afterMb = after.availMem / (1024 * 1024)
+        val freedMb = (afterMb - beforeMb).coerceAtLeast(0)
+
+        updateRamWidget()
+        Toast.makeText(this, "تم تنظيف $killedCount عملية • تحرير $freedMb MB (المتاح: $afterMb MB)", Toast.LENGTH_LONG).show()
     }
 
-    private fun saveAndAttachWidget(appWidgetId: Int) {
-        getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-            .edit().putInt(keySavedWidgetId, appWidgetId).apply()
-        attachHostWidget(appWidgetId)
-    }
-
+    // --- 4. APPS & BOTTOM DOCK ---
     private fun loadInstalledApps() {
         val pm = packageManager
-        val intent = Intent(Intent.ACTION_MAIN, null).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-        val leanbackIntent = Intent(Intent.ACTION_MAIN, null).apply {
-            addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER)
-        }
+        val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
+        val leanbackIntent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER) }
 
         val resolved = mutableListOf<android.content.pm.ResolveInfo>()
         resolved.addAll(pm.queryIntentActivities(intent, 0))
@@ -388,91 +430,93 @@ class MainActivity : AppCompatActivity() {
             val pkg = ri.activityInfo.packageName
             if (pkg == packageName || seen.contains(pkg)) continue
             seen.add(pkg)
-            val label = ri.loadLabel(pm).toString()
-            val icon = ri.loadIcon(pm)
-            list.add(AppItem(label, pkg, icon))
+            list.add(AppItem(ri.loadLabel(pm).toString(), pkg, ri.loadIcon(pm)))
         }
         allInstalledApps = list.sortedBy { it.label.lowercase() }
     }
 
-    private fun setupLists() {
-        rvFavoriteApps.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        rvAllAppsPreview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+    private fun setupDockAndGrid() {
+        rvDockApps.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         rvAllAppsGrid.layoutManager = GridLayoutManager(this, 5)
 
-        refreshFavoritesRow()
-
-        rvAllAppsPreview.adapter = AppAdapter(allInstalledApps.take(12), false, { app ->
-            launchApp(app.packageName)
-        }, { app ->
-            toggleFavorite(app)
-        })
+        refreshDock()
 
         rvAllAppsGrid.adapter = AppAdapter(allInstalledApps, true, { app ->
             launchApp(app.packageName)
         }, { app ->
-            toggleFavorite(app)
+            toggleDockApp(app)
         })
     }
 
-    private fun getSavedFavoritePackages(): MutableSet<String> {
+    private fun getSavedDockPackages(): MutableList<String> {
         val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        val saved = prefs.getStringSet(keyFavorites, null)
-        if (saved != null) return saved.toMutableSet()
-
+        val saved = prefs.getString(keyDockPackages, null)
+        if (saved != null) {
+            return saved.split(",").filter { it.isNotBlank() }.toMutableList()
+        }
         val defaults = listOf(
             "com.google.android.youtube.tv",
             "com.google.android.youtube",
-            "com.netflix.ninja",
-            "com.netflix.mediaclient",
             "com.android.vending",
-            "com.disney.disneyplus"
+            "com.netflix.ninja",
+            "com.netflix.mediaclient"
         )
-        return allInstalledApps.filter { defaults.contains(it.packageName) }.map { it.packageName }.toMutableSet()
+        val matched = allInstalledApps.filter { defaults.contains(it.packageName) }.map { it.packageName }.toMutableList()
+        val iptv = allInstalledApps.firstOrNull {
+            val n = (it.label + " " + it.packageName).lowercase()
+            n.contains("iptv") || n.contains("ninja") || n.contains("smarters") || n.contains("tivimate")
+        }
+        if (iptv != null && !matched.contains(iptv.packageName)) matched.add(iptv.packageName)
+        return matched
     }
 
-    private fun getFavoriteAppsOnly(): List<AppItem> {
-        val favPkgs = getSavedFavoritePackages()
-        return allInstalledApps.filter { favPkgs.contains(it.packageName) }
-    }
+    private fun refreshDock() {
+        val dockPkgs = getSavedDockPackages()
+        val dockList = allInstalledApps.filter { dockPkgs.contains(it.packageName) }.toMutableList()
 
-    private fun refreshFavoritesRow() {
-        val favList = getFavoriteAppsOnly().toMutableList()
-        favList.add(AppItem("إضافة", "", null, isAddButton = true))
-        rvFavoriteApps.adapter = AppAdapter(favList, false, { app ->
-            if (app.isAddButton) {
-                showAddFavoriteDialog()
-            } else {
-                launchApp(app.packageName)
+        dockList.add(AppItem("ملفاتي", "", null, SpecialAction.FILES, R.drawable.ic_folder))
+        dockList.add(AppItem("الإعدادات", "", null, SpecialAction.SETTINGS, R.drawable.ic_settings))
+        dockList.add(AppItem("التطبيقات", "", null, SpecialAction.ALL_APPS, R.drawable.ic_apps))
+        dockList.add(AppItem("إضافة", "", null, SpecialAction.ADD_APP, R.drawable.ic_add))
+
+        rvDockApps.adapter = AppAdapter(dockList, false, { item ->
+            when (item.specialAction) {
+                SpecialAction.FILES -> openFileManager()
+                SpecialAction.SETTINGS -> openSettings(Settings.ACTION_SETTINGS)
+                SpecialAction.ALL_APPS -> {
+                    homeContainer.visibility = View.GONE
+                    appsContainer.visibility = View.VISIBLE
+                    rvAllAppsGrid.requestFocus()
+                }
+                SpecialAction.ADD_APP -> showAddToDockDialog()
+                SpecialAction.NONE -> launchApp(item.packageName)
             }
-        }, { app ->
-            if (!app.isAddButton) toggleFavorite(app)
+        }, { item ->
+            if (item.specialAction == SpecialAction.NONE) toggleDockApp(item)
         })
     }
 
-    private fun toggleFavorite(app: AppItem) {
+    private fun toggleDockApp(app: AppItem) {
         val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        val favs = getSavedFavoritePackages()
-        val msg = if (favs.contains(app.packageName)) {
-            favs.remove(app.packageName)
-            "تمت إزالة ${app.label} من المفضلة"
+        val list = getSavedDockPackages()
+        val msg = if (list.contains(app.packageName)) {
+            list.remove(app.packageName)
+            "تمت إزالة ${app.label} من الشريط"
         } else {
-            favs.add(app.packageName)
-            "تمت إضافة ${app.label} إلى المفضلة"
+            list.add(app.packageName)
+            "تمت إضافة ${app.label} إلى الشريط"
         }
-        prefs.edit().putStringSet(keyFavorites, favs).apply()
-        refreshFavoritesRow()
+        prefs.edit().putString(keyDockPackages, list.joinToString(",")).apply()
+        refreshDock()
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
-    private fun showAddFavoriteDialog() {
+    private fun showAddToDockDialog() {
         if (allInstalledApps.isEmpty()) return
         val names = allInstalledApps.map { it.label }.toTypedArray()
         AlertDialog.Builder(this)
-            .setTitle("إضافة تطبيق إلى المفضلة")
-            .setItems(names) { _, which ->
-                toggleFavorite(allInstalledApps[which])
-            }
+            .setTitle("إضافة تطبيق إلى الشريط السفلي")
+            .setItems(names) { _, which -> toggleDockApp(allInstalledApps[which]) }
             .setNegativeButton("إلغاء", null)
             .show()
     }
@@ -493,8 +537,7 @@ class MainActivity : AppCompatActivity() {
             "com.google.android.youtube.tv",
             "com.google.android.youtube",
             "app.revanced.android.youtube",
-            "com.liskovsoft.smarttubetv.beta",
-            "com.teamsmart.videomanager.tv"
+            "com.liskovsoft.smarttubetv.beta"
         )
         for (pkg in candidates) {
             if (isPackageInstalled(pkg)) {
@@ -506,35 +549,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun launchSportsOrIptv() {
-        val iptvMatch = allInstalledApps.firstOrNull {
+        val iptv = allInstalledApps.firstOrNull {
             val n = (it.label + " " + it.packageName).lowercase()
             n.contains("iptv") || n.contains("ninja") || n.contains("smarters") || n.contains("tivimate") || n.contains("kodi")
         }
-        if (iptvMatch != null) {
-            launchApp(iptvMatch.packageName)
+        if (iptv != null) {
+            launchApp(iptv.packageName)
             return
         }
         try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/results?search_query=مباريات+اليوم+مباشر"))
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/results?search_query=مباريات+اليوم+مباشر")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (_: Exception) {
             launchYouTube()
         }
     }
 
     private fun openFileManager() {
-        val knownPackages = listOf(
+        val known = listOf(
             "com.softwinner.TvdFileManager",
             "com.android.fileexplorer",
             "com.google.android.documentsui",
             "com.android.documentsui",
             "com.estrongs.android.pop",
             "com.cxinventor.file.explorer",
-            "com.alphainventor.filemanager",
-            "com.lonelycatgames.Xplore"
+            "com.alphainventor.filemanager"
         )
-        for (pkg in knownPackages) {
+        for (pkg in known) {
             if (isPackageInstalled(pkg)) {
                 launchApp(pkg)
                 return
@@ -542,7 +582,7 @@ class MainActivity : AppCompatActivity() {
         }
         val detected = allInstalledApps.firstOrNull {
             val n = (it.label + " " + it.packageName).lowercase()
-            n.contains("file") || n.contains("explorer") || n.contains("ملف") || n.contains("مدير الملفات")
+            n.contains("file") || n.contains("explorer") || n.contains("ملف")
         }
         if (detected != null) {
             launchApp(detected.packageName)
@@ -558,13 +598,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun isPackageInstalled(pkg: String): Boolean {
-        return try {
-            packageManager.getPackageInfo(pkg, 0)
-            true
-        } catch (_: PackageManager.NameNotFoundException) {
-            false
-        }
+    private fun isPackageInstalled(pkg: String): Boolean = try {
+        packageManager.getPackageInfo(pkg, 0)
+        true
+    } catch (_: PackageManager.NameNotFoundException) {
+        false
     }
 
     private fun openSettings(action: String) {
@@ -579,27 +617,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun cleanMemory() {
-        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        for (app in allInstalledApps) {
-            if (app.packageName != packageName) {
-                try {
-                    am.killBackgroundProcesses(app.packageName)
-                } catch (_: Exception) {}
-            }
-        }
-        val after = ActivityManager.MemoryInfo()
-        am.getMemoryInfo(after)
-        val avail = after.availMem / (1024 * 1024)
-        tvRamStatus.text = "متاح $avail MB"
-        Toast.makeText(this, "تم تنظيف الذاكرة ($avail MB متاح)", Toast.LENGTH_SHORT).show()
-    }
-
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (appsContainer.visibility == View.VISIBLE) {
-            navHome.performClick()
-            navHome.requestFocus()
+            appsContainer.visibility = View.GONE
+            homeContainer.visibility = View.VISIBLE
+            rvDockApps.requestFocus()
         }
     }
 }
