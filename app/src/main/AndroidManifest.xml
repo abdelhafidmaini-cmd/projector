@@ -8,7 +8,6 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
@@ -21,8 +20,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="CinemaHome"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CinemaHome"
-        android:usesCleartextTraffic="true">
+        android:theme="@style/Theme.CinemaHome">
 
         <activity
             android:name=".MainActivity"
