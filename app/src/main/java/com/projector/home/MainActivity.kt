@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -33,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var tabHome: TextView
     private lateinit var tabApps: TextView
-    private lateinit var homeContainer: LinearLayout
+    private lateinit var homeContainer: ScrollView
     private lateinit var appsContainer: LinearLayout
 
     private lateinit var rvCircleApps: RecyclerView
@@ -442,7 +443,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupAppLists() {
         rvCircleApps.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         rvMoreApps.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        rvAllAppsGrid.layoutManager = GridLayoutManager(this, 8)
+        rvAllAppsGrid.layoutManager = GridLayoutManager(this, 6)
 
         refreshFavorites()
 

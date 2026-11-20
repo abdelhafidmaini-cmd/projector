@@ -11,8 +11,8 @@ android {
         applicationId = "com.projector.home"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "4.1"
+        versionCode = 8
+        versionName = "4.2"
     }
 
     signingConfigs {

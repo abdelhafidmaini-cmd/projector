@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="94dp"
+    android:layout_height="110dp"
     android:layout_margin="6dp"
     android:clipChildren="false"
     android:clipToPadding="false"
@@ -11,10 +11,10 @@
 
     <FrameLayout
         android:id="@+id/circleFrame"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="76dp"
+        android:layout_height="76dp"
         android:background="@drawable/bg_gtv_circle_app"
-        android:padding="13dp">
+        android:padding="11dp">
 
         <ImageView
             android:id="@+id/ivAppIcon"
