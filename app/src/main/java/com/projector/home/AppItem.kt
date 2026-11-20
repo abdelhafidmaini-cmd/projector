@@ -6,7 +6,6 @@ enum class SpecialAction {
     NONE,
     FILES,
     SETTINGS,
-    ALL_APPS,
     ADD_APP
 }
 

@@ -2,20 +2,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_main_gradient"
+    android:background="@drawable/bg_gtv_ambient"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:layoutDirection="ltr"
     android:orientation="vertical"
-    android:padding="18dp">
+    android:paddingHorizontal="28dp"
+    android:paddingVertical="18dp">
 
-    <!-- Top Status Bar -->
+    <!-- Google TV Top Bar: Left "Google TV | 22:01", Right Pill Controls -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginBottom="12dp">
+        android:layout_height="44dp"
+        android:layout_marginBottom="18dp">
 
-        <!-- Left Quick System Icons -->
+        <!-- Left Branding + Clock -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -23,77 +24,19 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <ImageButton
-                android:id="@+id/btnWifi"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="@drawable/bg_top_icon"
-                android:focusable="true"
-                android:padding="7dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_wifi" />
-
-            <ImageButton
-                android:id="@+id/btnBluetooth"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_top_icon"
-                android:focusable="true"
-                android:padding="7dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_bluetooth" />
-
-            <ImageButton
-                android:id="@+id/btnSettings"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_top_icon"
-                android:focusable="true"
-                android:padding="7dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_settings" />
-        </LinearLayout>
-
-        <!-- Right Temp • Date | Clock -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentEnd="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
             <TextView
-                android:id="@+id/tvTopWeather"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="--°C"
-                android:textColor="#FACC15"
-                android:textSize="14sp"
+                android:text="Google TV"
+                android:textColor="#E8EAED"
+                android:textSize="17sp"
                 android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp"
-                android:text="•"
-                android:textColor="#94A3B8"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/tvDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="الخميس 19 نوفمبر"
-                android:textColor="#E2E8F0"
-                android:textSize="14sp" />
 
             <View
                 android:layout_width="1dp"
-                android:layout_height="16dp"
+                android:layout_height="15dp"
                 android:layout_marginHorizontal="10dp"
-                android:background="#55FFFFFF" />
+                android:background="#66E8EAED" />
 
             <TextClock
                 android:id="@+id/tvClock"
@@ -101,13 +44,100 @@
                 android:layout_height="wrap_content"
                 android:format12Hour="HH:mm"
                 android:format24Hour="HH:mm"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textColor="#E8EAED"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <!-- Right Pill Controls (Settings + Files Pill, Tabs Pill) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Quick System Pill (Settings, Files, Wi-Fi) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/bg_gtv_pill_container"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="6dp">
+
+                <ImageButton
+                    android:id="@+id/btnSettings"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_gtv_icon_btn"
+                    android:focusable="true"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_settings" />
+
+                <ImageButton
+                    android:id="@+id/btnFilesTop"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_gtv_icon_btn"
+                    android:focusable="true"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_folder" />
+
+                <ImageButton
+                    android:id="@+id/btnWifi"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_gtv_icon_btn"
+                    android:focusable="true"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_wifi" />
+            </LinearLayout>
+
+            <!-- Navigation Tabs Pill (تطبيقات | الصفحة الرئيسية) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:background="@drawable/bg_gtv_pill_container"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="3dp">
+
+                <TextView
+                    android:id="@+id/tabApps"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_gtv_tab"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:text="تطبيقات"
+                    android:textColor="#E8EAED"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tabHome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_gtv_tab"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingHorizontal="18dp"
+                    android:text="الصفحة الرئيسية"
+                    android:textColor="#121317"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- HOME DASHBOARD (4 Bento Widgets + Bottom Neon Dock) -->
+    <!-- HOME VIEW -->
     <LinearLayout
         android:id="@+id/homeContainer"
         android:layout_width="match_parent"
@@ -117,134 +147,117 @@
         android:clipToPadding="false"
         android:orientation="vertical">
 
-        <!-- Middle Row: 4 Bento Neon Widgets -->
+        <!-- Section 1: Circular Apps Row ("تطبيقاتك") -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:gravity="end"
+            android:text="تطبيقاتك"
+            android:textColor="#BDC1C6"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCircleApps"
+            android:layout_width="match_parent"
+            android:layout_height="104dp"
+            android:layout_marginBottom="16dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="6dp" />
+
+        <!-- Section 2: Wide 16:9 Live Widget Cards Row -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="end"
+            android:text="مباشر اليوم"
+            android:textColor="#BDC1C6"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="134dp"
             android:layout_marginBottom="16dp"
-            android:layout_weight="1"
             android:clipChildren="false"
             android:clipToPadding="false"
             android:orientation="horizontal">
 
-            <!-- 1. Weather Widget (Real Location-Based) -->
+            <!-- Card 1: Weather -->
             <LinearLayout
                 android:id="@+id/cardWeather"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="12dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_bento_weather"
+                android:background="@drawable/bg_gtv_card_weather"
                 android:focusable="true"
+                android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/tvWeatherCity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:gravity="end"
-                    android:maxLines="1"
-                    android:text="الطقس"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                android:padding="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <LinearLayout
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_weather" />
+
+                    <TextView
+                        android:id="@+id/tvWeatherTemp"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="end"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/tvWeatherTemp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="--°C"
-                            android:textColor="#FFFFFF"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvWeatherDesc"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="جاري التحديث..."
-                            android:textColor="#CBD5E1"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:layout_marginStart="10dp"
-                        android:src="@drawable/ic_weather" />
+                        android:text="--°C"
+                        android:textColor="#FFFFFF"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvWeatherDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="end"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:text="الطقس حسب منطقتك"
+                    android:textColor="#E8EAED"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
+                    android:layout_marginTop="2dp"
+                    android:gravity="end"
                     android:text="اضغط لتغيير المدينة"
-                    android:textColor="#7DD3FC"
+                    android:textColor="#9AA0A6"
                     android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- 2. Today's Matches Widget (Real ESPN Scoreboard) -->
+            <!-- Card 2: Today's Football Matches -->
             <LinearLayout
                 android:id="@+id/cardMatches"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="12dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_bento_sports"
+                android:background="@drawable/bg_gtv_card_matches"
                 android:focusable="true"
+                android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:text="مباريات اليوم"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginBottom="8dp"
-                        android:src="@drawable/ic_sports" />
-
-                    <TextView
-                        android:id="@+id/tvMatchTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:gravity="center"
-                        android:maxLines="2"
-                        android:text="جاري جلب جدول اليوم..."
-                        android:textColor="#FFFFFF"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                android:padding="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -252,73 +265,58 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/tvMatchBadge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_pill_red"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="3dp"
-                        android:text="مباشر"
-                        android:textColor="#FFFFFF"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_sports" />
 
                     <TextView
-                        android:id="@+id/tvMatchTime"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="end"
-                        android:text="عرض الجدول ›"
-                        android:textColor="#E2E8F0"
-                        android:textSize="12sp"
+                        android:text="مباريات اليوم"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvMatchTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="end"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:text="جاري جلب جدول اليوم..."
+                    android:textColor="#E8EAED"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvMatchTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:gravity="end"
+                    android:text="اضغط لعرض الجدول"
+                    android:textColor="#6EE7B7"
+                    android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- 3. Now on YouTube Widget -->
+            <!-- Card 3: YouTube -->
             <LinearLayout
                 android:id="@+id/cardYouTube"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="12dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_bento_youtube"
+                android:background="@drawable/bg_gtv_card_youtube"
                 android:focusable="true"
+                android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:text="الآن على يوتيوب"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="54dp"
-                        android:layout_height="54dp"
-                        android:src="@drawable/ic_youtube" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center"
-                        android:text="تشغيل فيديوهات YouTube"
-                        android:textColor="#E2E8F0"
-                        android:textSize="12sp" />
-                </LinearLayout>
+                android:padding="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -326,132 +324,119 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_pill_magenta"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="3dp"
-                        android:text="رائج"
-                        android:textColor="#FFFFFF"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_youtube" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="end"
-                        android:text="فتح ▶"
-                        android:textColor="#F0ABFC"
-                        android:textSize="12sp"
+                        android:text="YouTube"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="end"
+                    android:text="فيديوهات ومقترحات"
+                    android:textColor="#E8EAED"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:gravity="end"
+                    android:text="تشغيل مباشر ▶"
+                    android:textColor="#FCA5A5"
+                    android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- 4. System Boost & Real RAM Cleaner Widget -->
+            <!-- Card 4: Real RAM Cleaner -->
             <LinearLayout
                 android:id="@+id/cardRamBoost"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/bg_bento_ram"
+                android:background="@drawable/bg_gtv_card_ram"
                 android:focusable="true"
-                android:gravity="center_horizontal"
+                android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_rocket" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="تنظيف الذاكرة"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvRamAvail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="end"
+                    android:text="RAM -- MB متاح"
+                    android:textColor="#E8EAED"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
                     android:gravity="end"
-                    android:text="تسريع النظام"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <FrameLayout
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginVertical="6dp">
-
-                    <ProgressBar
-                        android:id="@+id/pbRam"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:indeterminate="false"
-                        android:max="100"
-                        android:progress="65"
-                        android:progressDrawable="@drawable/ram_ring_progress" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="RAM"
-                            android:textColor="#94A3B8"
-                            android:textSize="10sp" />
-
-                        <TextView
-                            android:id="@+id/tvRamAvail"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="495"
-                            android:textColor="#FFFFFF"
-                            android:textSize="17sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="MB متاح"
-                            android:textColor="#94A3B8"
-                            android:textSize="9sp" />
-                    </LinearLayout>
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/tvCleanBtnLabel"
-                    android:layout_width="110dp"
-                    android:layout_height="30dp"
-                    android:background="@drawable/bg_pill_cyan"
-                    android:gravity="center"
-                    android:text="تنظيف"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                    android:text="اضغط لتسريع البروجكتور"
+                    android:textColor="#C4B5FD"
+                    android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Bottom Neon Dock Container -->
-        <LinearLayout
+        <!-- Section 3: Quick Installed Apps Strip -->
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="146dp"
-            android:background="@drawable/bg_dock_container"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:gravity="end"
+            android:text="المزيد من التطبيقات"
+            android:textColor="#9AA0A6"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMoreApps"
+            android:layout_width="match_parent"
+            android:layout_height="96dp"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvDockApps"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="8dp" />
-        </LinearLayout>
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="6dp" />
     </LinearLayout>
 
-    <!-- ALL INSTALLED APPS GRID (opened from Dock "التطبيقات") -->
+    <!-- ALL APPS TAB VIEW -->
     <LinearLayout
         android:id="@+id/appsContainer"
         android:layout_width="match_parent"
@@ -462,35 +447,15 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <RelativeLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp">
-
-            <TextView
-                android:id="@+id/btnBackHome"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_alignParentStart="true"
-                android:background="@drawable/bg_pill_cyan"
-                android:focusable="true"
-                android:gravity="center"
-                android:paddingHorizontal="16dp"
-                android:text="‹ الرئيسية"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:text="جميع التطبيقات المثبتة (اضغط مطولاً للتثبيت في الشريط)"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </RelativeLayout>
+            android:layout_marginBottom="10dp"
+            android:gravity="end"
+            android:text="جميع التطبيقات المثبتة (اضغط مطولاً للتثبيت في صف تطبيقاتك)"
+            android:textColor="#E8EAED"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvAllAppsGrid"
@@ -499,6 +464,6 @@
             android:layout_weight="1"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:padding="10dp" />
+            android:padding="8dp" />
     </LinearLayout>
 </LinearLayout>

@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -11,7 +12,6 @@ import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -24,34 +24,33 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var tabHome: TextView
+    private lateinit var tabApps: TextView
     private lateinit var homeContainer: LinearLayout
     private lateinit var appsContainer: LinearLayout
-    private lateinit var rvDockApps: RecyclerView
+
+    private lateinit var rvCircleApps: RecyclerView
+    private lateinit var rvMoreApps: RecyclerView
     private lateinit var rvAllAppsGrid: RecyclerView
 
-    private lateinit var tvTopWeather: TextView
-    private lateinit var tvWeatherCity: TextView
     private lateinit var tvWeatherTemp: TextView
     private lateinit var tvWeatherDesc: TextView
-
     private lateinit var tvMatchTitle: TextView
-    private lateinit var tvMatchBadge: TextView
     private lateinit var tvMatchTime: TextView
-
-    private lateinit var pbRam: ProgressBar
     private lateinit var tvRamAvail: TextView
 
     private var allInstalledApps: List<AppItem> = emptyList()
     private val todayMatchesList = mutableListOf<String>()
 
     private val prefsName = "cinema_home_prefs"
-    private val keyDockPackages = "dock_packages"
+    private val keyFavPackages = "dock_packages"
     private val keyCityName = "weather_city_name"
     private val keyCityLat = "weather_city_lat"
     private val keyCityLon = "weather_city_lon"
@@ -61,68 +60,54 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initViews()
-        updateArabicDateWithWesternDigits()
         setupTopBar()
         setupWidgets()
         loadInstalledApps()
-        setupDockAndGrid()
+        setupAppLists()
         updateRamWidget()
         loadLocationAndWeather()
         fetchTodayMatches()
+
+        selectTab(isHome = true)
     }
 
     override fun onResume() {
         super.onResume()
         updateRamWidget()
-        updateArabicDateWithWesternDigits()
     }
 
     private fun initViews() {
+        tabHome = findViewById(R.id.tabHome)
+        tabApps = findViewById(R.id.tabApps)
         homeContainer = findViewById(R.id.homeContainer)
         appsContainer = findViewById(R.id.appsContainer)
-        rvDockApps = findViewById(R.id.rvDockApps)
+
+        rvCircleApps = findViewById(R.id.rvCircleApps)
+        rvMoreApps = findViewById(R.id.rvMoreApps)
         rvAllAppsGrid = findViewById(R.id.rvAllAppsGrid)
 
-        tvTopWeather = findViewById(R.id.tvTopWeather)
-        tvWeatherCity = findViewById(R.id.tvWeatherCity)
         tvWeatherTemp = findViewById(R.id.tvWeatherTemp)
         tvWeatherDesc = findViewById(R.id.tvWeatherDesc)
-
         tvMatchTitle = findViewById(R.id.tvMatchTitle)
-        tvMatchBadge = findViewById(R.id.tvMatchBadge)
         tvMatchTime = findViewById(R.id.tvMatchTime)
-
-        pbRam = findViewById(R.id.pbRam)
         tvRamAvail = findViewById(R.id.tvRamAvail)
-
-        findViewById<TextView>(R.id.btnBackHome).setOnClickListener {
-            appsContainer.visibility = View.GONE
-            homeContainer.visibility = View.VISIBLE
-            rvDockApps.requestFocus()
-        }
-    }
-
-    private fun updateArabicDateWithWesternDigits() {
-        val tvDate = findViewById<TextView>(R.id.tvDate)
-        val locale = Locale("ar", "DZ")
-        val sdf = SimpleDateFormat("EEEE d MMMM", locale)
-        val formatted = sdf.format(Date())
-            .replace('٠', '0').replace('١', '1').replace('٢', '2')
-            .replace('٣', '3').replace('٤', '4').replace('٥', '5')
-            .replace('٦', '6').replace('٧', '7').replace('٨', '8').replace('٩', '9')
-        tvDate.text = formatted
     }
 
     private fun setupTopBar() {
-        findViewById<ImageButton>(R.id.btnWifi).setOnClickListener {
-            openSettings(Settings.ACTION_WIFI_SETTINGS)
-        }
-        findViewById<ImageButton>(R.id.btnBluetooth).setOnClickListener {
-            openSettings(Settings.ACTION_BLUETOOTH_SETTINGS)
-        }
-        findViewById<ImageButton>(R.id.btnSettings).setOnClickListener {
-            openSettings(Settings.ACTION_SETTINGS)
-        }
+        tabHome.setOnClickListener { selectTab(isHome = true) }
+        tabApps.setOnClickListener { selectTab(isHome = false) }
+        findViewById<ImageButton>(R.id.btnFilesTop).setOnClickListener { openFileManager() }
+        findViewById<ImageButton>(R.id.btnWifi).setOnClickListener { openSettings(Settings.ACTION_WIFI_SETTINGS) }
+        findViewById<ImageButton>(R.id.btnSettings).setOnClickListener { openSettings(Settings.ACTION_SETTINGS) }
+    }
+
+    private fun selectTab(isHome: Boolean) {
+        tabHome.isSelected = isHome
+        tabApps.isSelected = !isHome
+        tabHome.setTextColor(if (isHome) Color.parseColor("#121317") else Color.parseColor("#E8EAED"))
+        tabApps.setTextColor(if (!isHome) Color.parseColor("#121317") else Color.parseColor("#E8EAED"))
+        homeContainer.visibility = if (isHome) View.VISIBLE else View.GONE
+        appsContainer.visibility = if (!isHome) View.VISIBLE else View.GONE
     }
 
     private fun setupWidgets() {
@@ -133,8 +118,8 @@ class MainActivity : AppCompatActivity() {
 
         listOf(cardWeather, cardMatches, cardYouTube, cardRamBoost).forEach { card ->
             card.setOnFocusChangeListener { v, hasFocus ->
-                val scale = if (hasFocus) 1.03f else 1.0f
-                v.animate().scaleX(scale).scaleY(scale).setDuration(120).start()
+                val scale = if (hasFocus) 1.04f else 1.0f
+                v.animate().scaleX(scale).scaleY(scale).setDuration(110).start()
             }
         }
 
@@ -144,7 +129,6 @@ class MainActivity : AppCompatActivity() {
         cardRamBoost.setOnClickListener { performRealMemoryClean() }
     }
 
-    // --- 1. REAL LOCATION-BASED WEATHER ---
     private fun loadLocationAndWeather() {
         val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
         val savedCity = prefs.getString(keyCityName, null)
@@ -165,9 +149,7 @@ class MainActivity : AppCompatActivity() {
                     val lon = json.getDouble("longitude")
                     fetchWeatherForCoords(city, lat, lon)
                 } catch (_: Exception) {
-                    runOnUiThread {
-                        tvWeatherDesc.text = "اضغط لتحديد مدينتك"
-                    }
+                    runOnUiThread { tvWeatherDesc.text = "اضغط لتحديد المدينة" }
                 }
             }.start()
         }
@@ -183,19 +165,14 @@ class MainActivity : AppCompatActivity() {
                 val root = JSONObject(conn.inputStream.bufferedReader().readText())
                 val current = root.getJSONObject("current_weather")
                 val temp = current.getDouble("temperature").toInt()
-                val code = current.getInt("weathercode")
-                val desc = weatherCodeToArabic(code)
+                val desc = weatherCodeToArabic(current.getInt("weathercode"))
 
                 runOnUiThread {
-                    tvWeatherCity.text = "الطقس • $cityName"
                     tvWeatherTemp.text = "$temp°C"
-                    tvWeatherDesc.text = desc
-                    tvTopWeather.text = "$temp°C"
+                    tvWeatherDesc.text = "$cityName • $desc"
                 }
             } catch (_: Exception) {
-                runOnUiThread {
-                    tvWeatherDesc.text = "غير متصل"
-                }
+                runOnUiThread { tvWeatherDesc.text = "غير متصل" }
             }
         }.start()
     }
@@ -206,22 +183,22 @@ class MainActivity : AppCompatActivity() {
         3 -> "غائم"
         45, 48 -> "ضباب"
         51, 53, 55, 61, 63, 65, 80, 81, 82 -> "ممطر"
-        95, 96, 99 -> "عواصف رعدية"
+        95, 96, 99 -> "عواصف"
         else -> "معتدل"
     }
 
     private fun showCitySearchDialog() {
         val input = EditText(this).apply {
-            hint = "اكتب اسم المدينة (مثال: Algiers, Timimoun, Oran)"
+            hint = "اكتب اسم المدينة (مثال: Timimoun, Algiers, Oran)"
         }
         AlertDialog.Builder(this)
             .setTitle("تغيير منطقة الطقس")
             .setView(input)
-            .setPositiveButton("حفظ وتحديث") { _, _ ->
+            .setPositiveButton("حفظ") { _, _ ->
                 val cityQuery = input.text.toString().trim()
                 if (cityQuery.isNotEmpty()) searchAndSaveCity(cityQuery)
             }
-            .setNeutralButton("تحديد تلقائي") { _, _ ->
+            .setNeutralButton("تلقائي") { _, _ ->
                 getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit()
                     .remove(keyCityName).remove(keyCityLat).remove(keyCityLon).apply()
                 loadLocationAndWeather()
@@ -250,42 +227,66 @@ class MainActivity : AppCompatActivity() {
                         .apply()
                     fetchWeatherForCoords(name, lat, lon)
                 } else {
-                    runOnUiThread {
-                        Toast.makeText(this, "لم يتم العثور على المدينة", Toast.LENGTH_SHORT).show()
-                    }
+                    runOnUiThread { Toast.makeText(this, "لم يتم العثور على المدينة", Toast.LENGTH_SHORT).show() }
                 }
             } catch (_: Exception) {
-                runOnUiThread {
-                    Toast.makeText(this, "تعذر الاتصال بالإنترنت", Toast.LENGTH_SHORT).show()
-                }
+                runOnUiThread { Toast.makeText(this, "تعذر الاتصال", Toast.LENGTH_SHORT).show() }
             }
         }.start()
     }
 
-    // --- 2. REAL TODAY'S FOOTBALL MATCHES SCHEDULE ---
-    private fun fetchTodayMatches() {
+    private var matchesDayOffset = 0
+
+    private fun fetchTodayMatches(dayOffset: Int = 0) {
+        matchesDayOffset = dayOffset
+        runOnUiThread {
+            tvMatchTitle.text = "جاري جلب المباريات..."
+            tvMatchTime.text = if (dayOffset == 0) "الدوريات الكبرى • اليوم" else "الدوريات الكبرى • غداً"
+        }
         Thread {
-            try {
-                val conn = URL("https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard").openConnection() as HttpURLConnection
-                conn.connectTimeout = 6000
-                conn.readTimeout = 6000
-                val root = JSONObject(conn.inputStream.bufferedReader().readText())
-                val events = root.optJSONArray("events")
+            val majorLeagues = listOf(
+                "uefa.champions" to "دوري أبطال أوروبا",
+                "eng.1" to "الدوري الإنجليزي",
+                "esp.1" to "الدوري الإسباني",
+                "ita.1" to "الدوري الإيطالي",
+                "ger.1" to "الدوري الألماني",
+                "fra.1" to "الدوري الفرنسي",
+                "uefa.europa" to "الدوري الأوروبي",
+                "ksa.1" to "الدوري السعودي",
+                "uefa.nations" to "دوري الأمم الأوروبية",
+                "caf.nations" to "كأس أمم إفريقيا"
+            )
 
-                val parsed = mutableListOf<String>()
-                var featuredTitle = "لا توجد مباريات مسجلة الآن"
-                var featuredBadge = "اليوم"
-                var featuredTime = "عرض الكل"
+            val cal = Calendar.getInstance()
+            cal.add(Calendar.DAY_OF_YEAR, dayOffset)
+            val queryDate = SimpleDateFormat("yyyyMMdd", Locale.US).format(cal.time)
+            val displayDate = SimpleDateFormat("dd/MM/yyyy", Locale.US).format(cal.time)
 
-                if (events != null) {
-                    val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US).apply {
-                        timeZone = TimeZone.getTimeZone("UTC")
-                    }
-                    val localTimeFormat = SimpleDateFormat("HH:mm", Locale.US)
+            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            val localTimeFormat = SimpleDateFormat("HH:mm", Locale.US).apply {
+                timeZone = TimeZone.getDefault()
+            }
+
+            val parsed = mutableListOf<String>()
+            var firstTitle = ""
+            var firstTime = ""
+            var anySuccess = false
+
+            for ((code, arLeague) in majorLeagues) {
+                try {
+                    val url = URL("https://site.api.espn.com/apis/site/v2/sports/soccer/$code/scoreboard?dates=$queryDate")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+                    val root = JSONObject(conn.inputStream.bufferedReader().readText())
+                    anySuccess = true
+                    val events = root.optJSONArray("events") ?: continue
 
                     for (i in 0 until events.length()) {
                         val ev = events.getJSONObject(i)
-                        val name = ev.optString("shortName", ev.optString("name", ""))
                         val dateStr = ev.optString("date", "")
                         val statusObj = ev.optJSONObject("status")?.optJSONObject("type")
                         val state = statusObj?.optString("state", "") ?: ""
@@ -293,82 +294,89 @@ class MainActivity : AppCompatActivity() {
 
                         val comp = ev.optJSONArray("competitions")?.optJSONObject(0)
                         val competitors = comp?.optJSONArray("competitors")
-                        var scoreText = ""
-                        if (competitors != null && competitors.length() >= 2) {
-                            val t1 = competitors.getJSONObject(0)
-                            val t2 = competitors.getJSONObject(1)
-                            val n1 = t1.optJSONObject("team")?.optString("shortDisplayName", "") ?: ""
-                            val n2 = t2.optJSONObject("team")?.optString("shortDisplayName", "") ?: ""
-                            val s1 = t1.optString("score", "0")
-                            val s2 = t2.optString("score", "0")
-                            scoreText = if (state == "pre") "$n1 vs $n2" else "$n1 $s1 - $s2 $n2"
-                        } else {
-                            scoreText = name
-                        }
+                        if (competitors == null || competitors.length() < 2) continue
 
-                        var timeDisplay = detail
-                        if (state == "pre" && dateStr.isNotEmpty()) {
+                        val t1 = competitors.getJSONObject(0)
+                        val t2 = competitors.getJSONObject(1)
+                        val n1 = t1.optJSONObject("team")?.optString("shortDisplayName", "") ?: ""
+                        val n2 = t2.optJSONObject("team")?.optString("shortDisplayName", "") ?: ""
+                        val s1 = t1.optString("score", "0")
+                        val s2 = t2.optString("score", "0")
+
+                        var kickoff = ""
+                        if (dateStr.isNotEmpty()) {
                             try {
                                 val cleanDate = dateStr.replace(Regex(":[0-9]{2}Z$"), "Z")
                                 val dt = isoFormat.parse(cleanDate)
-                                if (dt != null) timeDisplay = localTimeFormat.format(dt)
+                                if (dt != null) kickoff = localTimeFormat.format(dt)
                             } catch (_: Exception) {}
                         }
 
-                        val line = "[$timeDisplay] $scoreText"
-                        parsed.add(line)
+                        val matchLine = when (state) {
+                            "in" -> "🔴 مباشر ($detail) | $n1 $s1 - $s2 $n2 — $arLeague"
+                            "post" -> "✅ انتهت | $n1 $s1 - $s2 $n2 — $arLeague"
+                            else -> "⏰ $kickoff | $n1 vs $n2 — $arLeague"
+                        }
+                        parsed.add(matchLine)
 
-                        if (i == 0) {
-                            featuredTitle = scoreText
-                            featuredBadge = if (state == "in") "مباشر" else if (state == "post") "انتهت" else "اليوم"
-                            featuredTime = "$timeDisplay (${events.length()} مباراة)"
+                        if (firstTitle.isEmpty()) {
+                            firstTitle = if (state == "pre") "$n1 vs $n2" else "$n1 $s1 - $s2 $n2"
+                            firstTime = if (state == "in") "مباشر • $arLeague" else "$kickoff • $arLeague"
                         }
                     }
+                } catch (_: Exception) {
+                    // Continue checking remaining major leagues
                 }
+            }
 
-                runOnUiThread {
-                    todayMatchesList.clear()
-                    todayMatchesList.addAll(parsed)
-                    tvMatchTitle.text = featuredTitle
-                    tvMatchBadge.text = featuredBadge
-                    tvMatchTime.text = featuredTime
-                }
-            } catch (_: Exception) {
-                runOnUiThread {
-                    tvMatchTitle.text = "اضغط لفتح البث المباشر"
-                    tvMatchBadge.text = "IPTV"
-                    tvMatchTime.text = "تحديث"
+            runOnUiThread {
+                todayMatchesList.clear()
+                todayMatchesList.addAll(parsed)
+                if (!anySuccess) {
+                    tvMatchTitle.text = "تعذر الاتصال بالإنترنت"
+                    tvMatchTime.text = "اضغط لإعادة المحاولة"
+                } else if (parsed.isEmpty()) {
+                    tvMatchTitle.text = if (dayOffset == 0) "لا توجد مباريات كبرى اليوم" else "لا توجد مباريات كبرى غداً"
+                    tvMatchTime.text = "$displayDate • اضغط لعرض الغد"
+                } else {
+                    tvMatchTitle.text = firstTitle
+                    tvMatchTime.text = "$firstTime (${parsed.size} مباراة)"
                 }
             }
         }.start()
     }
 
     private fun showMatchesScheduleDialog() {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_YEAR, matchesDayOffset)
+        val displayDate = SimpleDateFormat("dd/MM/yyyy", Locale.US).format(cal.time)
+        val dayLabel = if (matchesDayOffset == 0) "اليوم" else "غداً"
+
         val items = if (todayMatchesList.isNotEmpty()) {
             todayMatchesList.toTypedArray()
         } else {
-            arrayOf("لم يتم تحميل جدول المباريات (تأكد من الاتصال بالإنترنت)")
+            arrayOf("لا توجد مباريات في الدوريات الـ 5 الكبرى أو دوري الأبطال بتاريخ $displayDate")
         }
+
+        val toggleBtnText = if (matchesDayOffset == 0) "مباريات الغد" else "مباريات اليوم"
         AlertDialog.Builder(this)
-            .setTitle("جدول مباريات اليوم (${todayMatchesList.size})")
+            .setTitle("مباريات $dayLabel ($displayDate) — ${todayMatchesList.size}")
             .setItems(items) { _, _ -> launchSportsOrIptv() }
             .setPositiveButton("فتح IPTV") { _, _ -> launchSportsOrIptv() }
-            .setNeutralButton("تحديث") { _, _ -> fetchTodayMatches() }
+            .setNeutralButton(toggleBtnText) { _, _ ->
+                val nextOffset = if (matchesDayOffset == 0) 1 else 0
+                fetchTodayMatches(nextOffset)
+            }
             .setNegativeButton("إغلاق", null)
             .show()
     }
 
-    // --- 3. REAL SYSTEM MEMORY CLEANING ---
     private fun updateRamWidget() {
         val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val mi = ActivityManager.MemoryInfo()
         am.getMemoryInfo(mi)
         val availMb = (mi.availMem / (1024 * 1024)).toInt()
-        val totalMb = (mi.totalMem / (1024 * 1024)).toInt().coerceAtLeast(1)
-        val usedPercent = (((totalMb - availMb) * 100) / totalMb).coerceIn(5, 98)
-
-        tvRamAvail.text = availMb.toString()
-        pbRam.progress = usedPercent
+        tvRamAvail.text = "RAM $availMb MB متاح"
     }
 
     private fun performRealMemoryClean() {
@@ -398,10 +406,7 @@ class MainActivity : AppCompatActivity() {
                 } catch (_: Exception) {}
             }
         }
-
-        try {
-            cacheDir?.deleteRecursively()
-        } catch (_: Exception) {}
+        try { cacheDir?.deleteRecursively() } catch (_: Exception) {}
         System.gc()
         Runtime.getRuntime().gc()
 
@@ -414,7 +419,6 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "تم تنظيف $killedCount عملية • تحرير $freedMb MB (المتاح: $afterMb MB)", Toast.LENGTH_LONG).show()
     }
 
-    // --- 4. APPS & BOTTOM DOCK ---
     private fun loadInstalledApps() {
         val pm = packageManager
         val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
@@ -435,25 +439,31 @@ class MainActivity : AppCompatActivity() {
         allInstalledApps = list.sortedBy { it.label.lowercase() }
     }
 
-    private fun setupDockAndGrid() {
-        rvDockApps.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        rvAllAppsGrid.layoutManager = GridLayoutManager(this, 5)
+    private fun setupAppLists() {
+        rvCircleApps.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvMoreApps.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvAllAppsGrid.layoutManager = GridLayoutManager(this, 8)
 
-        refreshDock()
+        refreshFavorites()
+
+        rvMoreApps.adapter = AppAdapter(allInstalledApps, false, { app ->
+            launchApp(app.packageName)
+        }, { app ->
+            toggleFavoriteApp(app)
+        })
 
         rvAllAppsGrid.adapter = AppAdapter(allInstalledApps, true, { app ->
             launchApp(app.packageName)
         }, { app ->
-            toggleDockApp(app)
+            toggleFavoriteApp(app)
         })
     }
 
-    private fun getSavedDockPackages(): MutableList<String> {
+    private fun getSavedFavPackages(): MutableList<String> {
         val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        val saved = prefs.getString(keyDockPackages, null)
-        if (saved != null) {
-            return saved.split(",").filter { it.isNotBlank() }.toMutableList()
-        }
+        val saved = prefs.getString(keyFavPackages, null)
+        if (saved != null) return saved.split(",").filter { it.isNotBlank() }.toMutableList()
+
         val defaults = listOf(
             "com.google.android.youtube.tv",
             "com.google.android.youtube",
@@ -470,53 +480,47 @@ class MainActivity : AppCompatActivity() {
         return matched
     }
 
-    private fun refreshDock() {
-        val dockPkgs = getSavedDockPackages()
-        val dockList = allInstalledApps.filter { dockPkgs.contains(it.packageName) }.toMutableList()
+    private fun refreshFavorites() {
+        val favPkgs = getSavedFavPackages()
+        val favList = allInstalledApps.filter { favPkgs.contains(it.packageName) }.toMutableList()
 
-        dockList.add(AppItem("ملفاتي", "", null, SpecialAction.FILES, R.drawable.ic_folder))
-        dockList.add(AppItem("الإعدادات", "", null, SpecialAction.SETTINGS, R.drawable.ic_settings))
-        dockList.add(AppItem("التطبيقات", "", null, SpecialAction.ALL_APPS, R.drawable.ic_apps))
-        dockList.add(AppItem("إضافة", "", null, SpecialAction.ADD_APP, R.drawable.ic_add))
+        favList.add(AppItem("ملفاتي", "", null, SpecialAction.FILES, R.drawable.ic_folder))
+        favList.add(AppItem("الإعدادات", "", null, SpecialAction.SETTINGS, R.drawable.ic_settings))
+        favList.add(AppItem("إضافة", "", null, SpecialAction.ADD_APP, R.drawable.ic_add))
 
-        rvDockApps.adapter = AppAdapter(dockList, false, { item ->
+        rvCircleApps.adapter = AppAdapter(favList, false, { item ->
             when (item.specialAction) {
                 SpecialAction.FILES -> openFileManager()
                 SpecialAction.SETTINGS -> openSettings(Settings.ACTION_SETTINGS)
-                SpecialAction.ALL_APPS -> {
-                    homeContainer.visibility = View.GONE
-                    appsContainer.visibility = View.VISIBLE
-                    rvAllAppsGrid.requestFocus()
-                }
-                SpecialAction.ADD_APP -> showAddToDockDialog()
+                SpecialAction.ADD_APP -> showAddFavDialog()
                 SpecialAction.NONE -> launchApp(item.packageName)
             }
         }, { item ->
-            if (item.specialAction == SpecialAction.NONE) toggleDockApp(item)
+            if (item.specialAction == SpecialAction.NONE) toggleFavoriteApp(item)
         })
     }
 
-    private fun toggleDockApp(app: AppItem) {
+    private fun toggleFavoriteApp(app: AppItem) {
         val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        val list = getSavedDockPackages()
+        val list = getSavedFavPackages()
         val msg = if (list.contains(app.packageName)) {
             list.remove(app.packageName)
-            "تمت إزالة ${app.label} من الشريط"
+            "تمت إزالة ${app.label} من تطبيقاتك"
         } else {
             list.add(app.packageName)
-            "تمت إضافة ${app.label} إلى الشريط"
+            "تمت إضافة ${app.label} إلى تطبيقاتك"
         }
-        prefs.edit().putString(keyDockPackages, list.joinToString(",")).apply()
-        refreshDock()
+        prefs.edit().putString(keyFavPackages, list.joinToString(",")).apply()
+        refreshFavorites()
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
-    private fun showAddToDockDialog() {
+    private fun showAddFavDialog() {
         if (allInstalledApps.isEmpty()) return
         val names = allInstalledApps.map { it.label }.toTypedArray()
         AlertDialog.Builder(this)
-            .setTitle("إضافة تطبيق إلى الشريط السفلي")
-            .setItems(names) { _, which -> toggleDockApp(allInstalledApps[which]) }
+            .setTitle("إضافة تطبيق إلى صف تطبيقاتك")
+            .setItems(names) { _, which -> toggleFavoriteApp(allInstalledApps[which]) }
             .setNegativeButton("إلغاء", null)
             .show()
     }
@@ -620,9 +624,8 @@ class MainActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (appsContainer.visibility == View.VISIBLE) {
-            appsContainer.visibility = View.GONE
-            homeContainer.visibility = View.VISIBLE
-            rvDockApps.requestFocus()
+            selectTab(isHome = true)
+            tabHome.requestFocus()
         }
     }
 }
