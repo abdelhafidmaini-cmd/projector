@@ -1,363 +1,324 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_cyber_cinema"
-    android:clipChildren="false"
-    android:clipToPadding="false"
-    android:layoutDirection="ltr"
-    android:orientation="vertical"
-    android:paddingHorizontal="20dp"
-    android:paddingVertical="14dp">
+    android:background="@drawable/bg_alpine_stars"
+    android:layoutDirection="ltr">
 
-    <!-- TOP BAR: Left Brand Emblem + Centered Floating Status Pill -->
-    <RelativeLayout
+    <!-- Subtle Dark Vignette for Crisp Contrast -->
+    <View
         android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_marginBottom="12dp">
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_vignette_overlay" />
 
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_android" />
-
-        <!-- Centered Dynamic Pill -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_centerInParent="true"
-            android:background="@drawable/bg_center_pill"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp">
-
-            <ImageButton
-                android:id="@+id/btnFilesTop"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:background="@drawable/bg_pill_icon"
-                android:focusable="true"
-                android:padding="5dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_folder" />
-
-            <ImageButton
-                android:id="@+id/btnWifi"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_pill_icon"
-                android:focusable="true"
-                android:padding="5dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_wifi" />
-
-            <ImageButton
-                android:id="@+id/btnSettings"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_pill_icon"
-                android:focusable="true"
-                android:padding="5dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_settings" />
-
-            <View
-                android:layout_width="1dp"
-                android:layout_height="18dp"
-                android:layout_marginHorizontal="10dp"
-                android:background="#44FFFFFF" />
-
-            <TextClock
-                android:id="@+id/tvClock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:format12Hour="HH:mm"
-                android:format24Hour="HH:mm"
-                android:textColor="#FFFFFF"
-                android:textSize="17sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:text="الجمعة 20 نوفمبر 2026"
-                android:textColor="#CBD5E1"
-                android:textSize="11sp" />
-        </LinearLayout>
-    </RelativeLayout>
-
-    <!-- MIDDLE 3-COLUMN LIVE DASHBOARD (Weather | Matches Spotlight | RAM & Storage) -->
-    <LinearLayout
+    <!-- Scrollable Smooth Official Launcher Content -->
+    <ScrollView
+        android:id="@+id/mainScroll"
         android:layout_width="match_parent"
-        android:layout_height="126dp"
-        android:layout_marginBottom="12dp"
+        android:layout_height="match_parent"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:orientation="horizontal">
+        android:fillViewport="true"
+        android:scrollbars="none">
 
-        <!-- LEFT: Detailed Live Weather Panel -->
         <LinearLayout
-            android:id="@+id/cardWeather"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="12dp"
-            android:layout_weight="1.15"
-            android:background="@drawable/bg_glass_panel"
-            android:focusable="true"
-            android:nextFocusDown="@+id/rvAllAppsGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:paddingHorizontal="26dp"
+            android:paddingVertical="16dp">
 
-            <TextView
-                android:id="@+id/tvWeatherCity"
+            <!-- TOP HEADER: Large Thin Clock + Date | Quick Pills -->
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="الطقس"
-                android:textColor="#CBD5E1"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tvWeatherTemp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="--°"
-                    android:textColor="#FFFFFF"
-                    android:textSize="32sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_marginStart="8dp"
-                    android:src="@drawable/ic_weather" />
+                android:layout_height="54dp"
+                android:layout_marginBottom="10dp">
 
                 <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:orientation="vertical">
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentStart="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextClock
+                        android:id="@+id/tvClock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-light"
+                        android:format12Hour="HH:mm"
+                        android:format24Hour="HH:mm"
+                        android:textColor="#FFFFFF"
+                        android:textSize="38sp" />
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="22dp"
+                        android:layout_marginHorizontal="14dp"
+                        android:background="#66FFFFFF" />
 
                     <TextView
-                        android:id="@+id/tvWeatherDesc"
+                        android:id="@+id/tvDate"
                         android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="الجمعة 20 نوفمبر"
+                        android:textColor="#E2E8F0"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <!-- Right Pills: ملفاتي | Wi-Fi | الإعدادات -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentEnd="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btnFilesTop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_top_pill"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:paddingHorizontal="16dp"
+                        android:text="ملفاتي"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnWifi"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_top_pill"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:paddingHorizontal="16dp"
+                        android:text="Wi-Fi"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnSettings"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_top_pill"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:paddingHorizontal="18dp"
+                        android:text="الإعدادات"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </RelativeLayout>
+
+            <!-- FULL-WIDTH PRAYER TIMES & HIJRI DATE BAR -->
+            <LinearLayout
+                android:id="@+id/prayerBar"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_prayer_bar"
+                android:focusable="true"
+                android:gravity="center"
+                android:nextFocusDown="@+id/cardWeather"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <TextView
+                    android:id="@+id/tvPrayerTimes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="جاري جلب مواقيت الصلاة والتاريخ الهجري..."
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- MIDDLE 2 GLASS PANELS: Weather (Left) + Real Memory Cleaner (Right) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="128dp"
+                android:layout_marginBottom="16dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:orientation="horizontal">
+
+                <!-- LEFT: Live Weather Panel -->
+                <LinearLayout
+                    android:id="@+id/cardWeather"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="14dp"
+                    android:layout_weight="1.15"
+                    android:background="@drawable/bg_alpine_card"
+                    android:focusable="true"
+                    android:nextFocusDown="@+id/rvFavoriteApps"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="42dp"
+                            android:layout_height="42dp"
+                            android:src="@drawable/ic_weather" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvWeatherMain"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="الطقس • --°C"
+                                android:textColor="#FFFFFF"
+                                android:textSize="22sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvWeatherCity"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="اضغط لتغيير المدينة"
+                                android:textColor="#CBD5E1"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvWeatherForecast"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
+                        android:gravity="end"
                         android:maxLines="1"
-                        android:text="جاري التحديث..."
-                        android:textColor="#F8FAFC"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvWeatherWind"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="الرياح -- km/h"
-                        android:textColor="#94A3B8"
-                        android:textSize="10sp" />
+                        android:text="تحديث تلقائي عند توفر الإنترنت"
+                        android:textColor="#93C5FD"
+                        android:textSize="11sp" />
                 </LinearLayout>
-            </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvWeatherForecast"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="اضغط لتغيير المدينة"
-                android:textColor="#7DD3FC"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-        <!-- CENTER: Glowing Spotlight Card (Today's Major Football Matches) -->
-        <LinearLayout
-            android:id="@+id/cardMatches"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="12dp"
-            android:layout_weight="1.15"
-            android:background="@drawable/bg_spotlight_card"
-            android:focusable="true"
-            android:gravity="center"
-            android:nextFocusDown="@+id/rvAllAppsGrid"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_sports" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="مباريات اليوم • الدوريات الكبرى"
-                    android:textColor="#7DD3FC"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvMatchTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="2"
-                android:text="جاري جلب جدول المباريات..."
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvMatchTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:text="اضغط لعرض الجدول الكامل"
-                android:textColor="#BAE6FD"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- RIGHT: Live System Monitor (RAM + Storage + Real Cleaner) -->
-        <LinearLayout
-            android:id="@+id/cardRamBoost"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.15"
-            android:background="@drawable/bg_glass_panel"
-            android:focusable="true"
-            android:nextFocusDown="@+id/rvAllAppsGrid"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
+                <!-- RIGHT: Real RAM & Storage Cleaner Panel -->
                 <LinearLayout
+                    android:id="@+id/cardRamBoost"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:background="@drawable/bg_alpine_card"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:nextFocusDown="@+id/rvFavoriteApps"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="RAM"
-                        android:textColor="#94A3B8"
-                        android:textSize="10sp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/tvRamPercent"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="--%"
-                        android:textColor="#FFFFFF"
-                        android:textSize="24sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:src="@drawable/ic_rocket" />
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.5"
-                    android:gravity="end"
-                    android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/tvRamMain"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="تنظيف الذاكرة • RAM -- MB"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/tvRamDetail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="الذاكرة: -- MB"
-                        android:textColor="#E2E8F0"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
+                    <ProgressBar
+                        android:id="@+id/pbRam"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginVertical="12dp"
+                        android:max="100"
+                        android:progress="50"
+                        android:progressDrawable="@drawable/bg_ram_progress" />
 
                     <TextView
                         android:id="@+id/tvStorageDetail"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="التخزين: -- GB متاح"
-                        android:textColor="#94A3B8"
-                        android:textSize="10sp" />
+                        android:gravity="end"
+                        android:text="اضغط لتسريع البروجكتور وتحرير الذاكرة"
+                        android:textColor="#BAE6FD"
+                        android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- BOTTOM DOCK: Favorite Apps (Sleek Frosted Glass Container) -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="104dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_dock_glass"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp">
 
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_rocket" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:text="تنظيف الذاكرة وتسريع النظام"
-                    android:textColor="#38BDF8"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvFavoriteApps"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="6dp" />
             </LinearLayout>
+
+            <!-- ALL INSTALLED APPS GRID (Scroll down smoothly with D-pad) -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="end"
+                android:text="كل التطبيقات (اضغط مطولاً للتثبيت في الشريط الرئيسي)"
+                android:textColor="#CBD5E1"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAllAppsGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
+                android:paddingBottom="18dp" />
+
         </LinearLayout>
-    </LinearLayout>
-
-    <!-- BOTTOM: Wide Banner Applications Grid (Scrollable, 6 Columns) -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:text="Applications • التطبيقات"
-        android:textColor="#E2E8F0"
-        android:textSize="13sp"
-        android:textStyle="bold" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvAllAppsGrid"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:padding="4dp" />
-
-</LinearLayout>
+    </ScrollView>
+</FrameLayout>

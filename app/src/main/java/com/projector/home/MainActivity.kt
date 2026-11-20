@@ -4,98 +4,126 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
+import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Bundle
 import android.os.Environment
 import android.os.StatFs
 import android.provider.Settings
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var rvAllAppsGrid: RecyclerView
+    private lateinit var btnFilesTop: TextView
+    private lateinit var btnWifi: TextView
+    private lateinit var btnSettings: TextView
+    private lateinit var tvPrayerTimes: TextView
 
+    private lateinit var tvWeatherMain: TextView
     private lateinit var tvWeatherCity: TextView
-    private lateinit var tvWeatherTemp: TextView
-    private lateinit var tvWeatherDesc: TextView
-    private lateinit var tvWeatherWind: TextView
     private lateinit var tvWeatherForecast: TextView
 
-    private lateinit var tvMatchTitle: TextView
-    private lateinit var tvMatchTime: TextView
-
-    private lateinit var tvRamPercent: TextView
-    private lateinit var tvRamDetail: TextView
+    private lateinit var tvRamMain: TextView
+    private lateinit var pbRam: ProgressBar
     private lateinit var tvStorageDetail: TextView
 
+    private lateinit var rvFavoriteApps: RecyclerView
+    private lateinit var rvAllAppsGrid: RecyclerView
+
     private var allInstalledApps: List<AppItem> = emptyList()
-    private val todayMatchesList = mutableListOf<String>()
-    private var matchesDayOffset = 0
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     private val prefsName = "cinema_home_prefs"
+    private val keyFavPackages = "dock_packages"
     private val keyCityName = "weather_city_name"
     private val keyCityLat = "weather_city_lat"
     private val keyCityLon = "weather_city_lon"
+    private val keyCachedWeatherMain = "cached_weather_main"
+    private val keyCachedWeatherCity = "cached_weather_city"
+    private val keyCachedWeatherForecast = "cached_weather_forecast"
+    private val keyCachedPrayer = "cached_prayer_bar"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         initViews()
+        restoreCachedData()
         updateArabicDateWithWesternDigits()
-        setupTopBar()
-        setupWidgets()
-        loadInstalledApps()
-        setupAppsGrid()
+        setupTopPills()
+        setupPanels()
         updateSystemStats()
-        loadLocationAndWeather()
-        fetchTodayMatches(0)
+        loadInstalledAppsAsync()
+        registerNetworkWatcher()
     }
 
     override fun onResume() {
         super.onResume()
         updateSystemStats()
         updateArabicDateWithWesternDigits()
+        updateWifiBadge()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            networkCallback?.let { cm.unregisterNetworkCallback(it) }
+        } catch (_: Exception) {}
     }
 
     private fun initViews() {
-        rvAllAppsGrid = findViewById(R.id.rvAllAppsGrid)
+        btnFilesTop = findViewById(R.id.btnFilesTop)
+        btnWifi = findViewById(R.id.btnWifi)
+        btnSettings = findViewById(R.id.btnSettings)
+        tvPrayerTimes = findViewById(R.id.tvPrayerTimes)
 
+        tvWeatherMain = findViewById(R.id.tvWeatherMain)
         tvWeatherCity = findViewById(R.id.tvWeatherCity)
-        tvWeatherTemp = findViewById(R.id.tvWeatherTemp)
-        tvWeatherDesc = findViewById(R.id.tvWeatherDesc)
-        tvWeatherWind = findViewById(R.id.tvWeatherWind)
         tvWeatherForecast = findViewById(R.id.tvWeatherForecast)
 
-        tvMatchTitle = findViewById(R.id.tvMatchTitle)
-        tvMatchTime = findViewById(R.id.tvMatchTime)
-
-        tvRamPercent = findViewById(R.id.tvRamPercent)
-        tvRamDetail = findViewById(R.id.tvRamDetail)
+        tvRamMain = findViewById(R.id.tvRamMain)
+        pbRam = findViewById(R.id.pbRam)
         tvStorageDetail = findViewById(R.id.tvStorageDetail)
+
+        rvFavoriteApps = findViewById(R.id.rvFavoriteApps)
+        rvAllAppsGrid = findViewById(R.id.rvAllAppsGrid)
+
+        rvFavoriteApps.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvAllAppsGrid.layoutManager = GridLayoutManager(this, 5)
+    }
+
+    private fun restoreCachedData() {
+        val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+        prefs.getString(keyCachedWeatherMain, null)?.let { tvWeatherMain.text = it }
+        prefs.getString(keyCachedWeatherCity, null)?.let { tvWeatherCity.text = it }
+        prefs.getString(keyCachedWeatherForecast, null)?.let { tvWeatherForecast.text = it }
+        prefs.getString(keyCachedPrayer, null)?.let { tvPrayerTimes.text = it }
     }
 
     private fun updateArabicDateWithWesternDigits() {
         val tvDate = findViewById<TextView>(R.id.tvDate)
         val locale = Locale("ar", "DZ")
-        val sdf = SimpleDateFormat("EEEE d MMMM yyyy", locale)
+        val sdf = SimpleDateFormat("EEEE d MMMM", locale)
         val formatted = sdf.format(Date())
             .replace('٠', '0').replace('١', '1').replace('٢', '2')
             .replace('٣', '3').replace('٤', '4').replace('٥', '5')
@@ -103,70 +131,140 @@ class MainActivity : AppCompatActivity() {
         tvDate.text = formatted
     }
 
-    private fun setupTopBar() {
-        findViewById<ImageButton>(R.id.btnFilesTop).setOnClickListener { openFileManager() }
-        findViewById<ImageButton>(R.id.btnWifi).setOnClickListener { openSettings(Settings.ACTION_WIFI_SETTINGS) }
-        findViewById<ImageButton>(R.id.btnSettings).setOnClickListener { openSettings(Settings.ACTION_SETTINGS) }
+    private fun setupTopPills() {
+        listOf(btnFilesTop, btnWifi, btnSettings).forEach { pill ->
+            pill.setOnFocusChangeListener { v, hasFocus ->
+                (v as TextView).setTextColor(if (hasFocus) Color.parseColor("#0A162E") else Color.WHITE)
+            }
+        }
+        btnFilesTop.setOnClickListener { openFileManager() }
+        btnWifi.setOnClickListener { openSettings(Settings.ACTION_WIFI_SETTINGS) }
+        btnSettings.setOnClickListener { openSettings(Settings.ACTION_SETTINGS) }
+        updateWifiBadge()
     }
 
-    private fun setupWidgets() {
+    private fun setupPanels() {
+        val prayerBar = findViewById<LinearLayout>(R.id.prayerBar)
         val cardWeather = findViewById<LinearLayout>(R.id.cardWeather)
-        val cardMatches = findViewById<LinearLayout>(R.id.cardMatches)
         val cardRamBoost = findViewById<LinearLayout>(R.id.cardRamBoost)
 
-        listOf(cardWeather, cardMatches, cardRamBoost).forEach { card ->
-            card.setOnFocusChangeListener { v, hasFocus ->
-                val scale = if (hasFocus) 1.03f else 1.0f
-                v.animate().scaleX(scale).scaleY(scale).setDuration(110).start()
+        listOf(prayerBar, cardWeather, cardRamBoost).forEach { panel ->
+            panel.setOnFocusChangeListener { v, hasFocus ->
+                val scale = if (hasFocus) 1.02f else 1.0f
+                v.animate().scaleX(scale).scaleY(scale).setDuration(100).start()
             }
         }
 
+        prayerBar.setOnClickListener { showCitySearchDialog() }
         cardWeather.setOnClickListener { showCitySearchDialog() }
-        cardMatches.setOnClickListener { showMatchesScheduleDialog() }
         cardRamBoost.setOnClickListener { performRealMemoryClean() }
     }
 
-    // --- 1. REAL WEATHER + 3-DAY FORECAST ---
-    private fun loadLocationAndWeather() {
+    // --- AUTO-DETECT INTERNET AVAILABILITY & REFRESH ---
+    private fun updateWifiBadge() {
+        val online = isInternetAvailable()
+        btnWifi.text = if (online) "● Wi-Fi" else "○ Wi-Fi"
+    }
+
+    private fun isInternetAvailable(): Boolean {
+        return try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val net = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(net) ?: return false
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun registerNetworkWatcher() {
+        loadLocationWeatherAndPrayers()
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val req = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+            networkCallback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    runOnUiThread { updateWifiBadge() }
+                    loadLocationWeatherAndPrayers()
+                }
+                override fun onLost(network: Network) {
+                    runOnUiThread { updateWifiBadge() }
+                }
+            }
+            cm.registerNetworkCallback(req, networkCallback!!)
+        } catch (_: Exception) {}
+    }
+
+    // --- WEATHER + PRAYER TIMES (HTTPS WITH HTTP FALLBACK + LOCAL CACHE) ---
+    private fun httpGetWithFallback(httpsUrl: String, httpFallbackUrl: String? = null): String? {
+        val urls = listOfNotNull(httpsUrl, httpFallbackUrl)
+        for (u in urls) {
+            try {
+                val conn = URL(u).openConnection() as HttpURLConnection
+                conn.connectTimeout = 6000
+                conn.readTimeout = 6000
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+                if (conn.responseCode in 200..299) {
+                    return conn.inputStream.bufferedReader().readText()
+                }
+            } catch (_: Exception) {}
+        }
+        return null
+    }
+
+    private fun loadLocationWeatherAndPrayers() {
         val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
         val savedCity = prefs.getString(keyCityName, null)
         val savedLat = prefs.getFloat(keyCityLat, Float.NaN)
         val savedLon = prefs.getFloat(keyCityLon, Float.NaN)
 
         if (savedCity != null && !savedLat.isNaN() && !savedLon.isNaN()) {
-            fetchWeatherForCoords(savedCity, savedLat.toDouble(), savedLon.toDouble())
+            fetchWeather(savedCity, savedLat.toDouble(), savedLon.toDouble())
+            fetchPrayerTimes(savedLat.toDouble(), savedLon.toDouble())
         } else {
             Thread {
-                try {
-                    val conn = URL("https://ipwho.is/").openConnection() as HttpURLConnection
-                    conn.connectTimeout = 5000
-                    conn.readTimeout = 5000
-                    val json = JSONObject(conn.inputStream.bufferedReader().readText())
-                    val city = json.optString("city", "الطقس")
-                    val lat = json.getDouble("latitude")
-                    val lon = json.getDouble("longitude")
-                    fetchWeatherForCoords(city, lat, lon)
-                } catch (_: Exception) {
-                    runOnUiThread { tvWeatherDesc.text = "اضغط لتحديد المدينة" }
+                var city = "تيميمون"
+                var lat = 29.2631
+                var lon = 0.2310
+
+                val ipRes = httpGetWithFallback("https://ipwho.is/", "http://ip-api.com/json/?fields=city,lat,lon")
+                if (ipRes != null) {
+                    try {
+                        val json = JSONObject(ipRes)
+                        val c = json.optString("city", "")
+                        if (c.isNotEmpty()) city = c
+                        if (json.has("latitude") && json.has("longitude")) {
+                            lat = json.getDouble("latitude")
+                            lon = json.getDouble("longitude")
+                        } else if (json.has("lat") && json.has("lon")) {
+                            lat = json.getDouble("lat")
+                            lon = json.getDouble("lon")
+                        }
+                    } catch (_: Exception) {}
                 }
+                fetchWeather(city, lat, lon)
+                fetchPrayerTimes(lat, lon)
             }.start()
         }
     }
 
-    private fun fetchWeatherForCoords(cityName: String, lat: Double, lon: Double) {
+    private fun fetchWeather(cityName: String, lat: Double, lon: Double) {
         Thread {
+            val res = httpGetWithFallback(
+                "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3",
+                "http://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3"
+            ) ?: return@Thread
+
             try {
-                val url = URL("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3")
-                val conn = url.openConnection() as HttpURLConnection
-                conn.connectTimeout = 5000
-                conn.readTimeout = 5000
-                val root = JSONObject(conn.inputStream.bufferedReader().readText())
+                val root = JSONObject(res)
                 val current = root.getJSONObject("current_weather")
                 val temp = current.getDouble("temperature").toInt()
                 val wind = current.getDouble("windspeed").toInt()
                 val desc = weatherCodeToArabic(current.getInt("weathercode"))
 
-                var forecastStr = "اضغط لتغيير المدينة"
+                var forecastStr = "الرياح $wind km/h  •  اضغط لتغيير المدينة"
                 val daily = root.optJSONObject("daily")
                 if (daily != null) {
                     val maxArr = daily.optJSONArray("temperature_2m_max")
@@ -179,16 +277,56 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+                val mainText = "$desc  $temp°C"
+                val cityText = "$cityName  •  الرياح $wind km/h"
+
+                getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit()
+                    .putString(keyCachedWeatherMain, mainText)
+                    .putString(keyCachedWeatherCity, cityText)
+                    .putString(keyCachedWeatherForecast, forecastStr)
+                    .apply()
+
                 runOnUiThread {
-                    tvWeatherCity.text = cityName.uppercase(Locale.US)
-                    tvWeatherTemp.text = "$temp°"
-                    tvWeatherDesc.text = desc
-                    tvWeatherWind.text = "الرياح $wind km/h"
+                    tvWeatherMain.text = mainText
+                    tvWeatherCity.text = cityText
                     tvWeatherForecast.text = forecastStr
                 }
-            } catch (_: Exception) {
-                runOnUiThread { tvWeatherDesc.text = "غير متصل" }
-            }
+            } catch (_: Exception) {}
+        }.start()
+    }
+
+    private fun fetchPrayerTimes(lat: Double, lon: Double) {
+        Thread {
+            val res = httpGetWithFallback(
+                "https://api.aladhan.com/v1/timings?latitude=$lat&longitude=$lon&method=19",
+                "http://api.aladhan.com/v1/timings?latitude=$lat&longitude=$lon&method=19"
+            ) ?: return@Thread
+
+            try {
+                val data = JSONObject(res).getJSONObject("data")
+                val timings = data.getJSONObject("timings")
+                val fajr = timings.optString("Fajr", "--:--").take(5)
+                val dhuhr = timings.optString("Dhuhr", "--:--").take(5)
+                val asr = timings.optString("Asr", "--:--").take(5)
+                val maghrib = timings.optString("Maghrib", "--:--").take(5)
+                val isha = timings.optString("Isha", "--:--").take(5)
+
+                val hijri = data.optJSONObject("date")?.optJSONObject("hijri")
+                val hDay = hijri?.optString("day", "") ?: ""
+                val hMonth = hijri?.optJSONObject("month")?.optString("ar", "") ?: ""
+                val hYear = hijri?.optString("year", "") ?: ""
+                val hijriPrefix = if (hDay.isNotEmpty()) "$hDay $hMonth $hYear  •  " else ""
+
+                val barText = "${hijriPrefix}الفجر $fajr  •  الظهر $dhuhr  •  العصر $asr  •  المغرب $maghrib  •  العشاء $isha"
+
+                getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit()
+                    .putString(keyCachedPrayer, barText)
+                    .apply()
+
+                runOnUiThread {
+                    tvPrayerTimes.text = barText
+                }
+            } catch (_: Exception) {}
         }.start()
     }
 
@@ -207,16 +345,16 @@ class MainActivity : AppCompatActivity() {
             hint = "اكتب اسم المدينة (مثال: Timimoun, Algiers, Oran)"
         }
         AlertDialog.Builder(this)
-            .setTitle("تغيير منطقة الطقس")
+            .setTitle("تغيير المدينة للطقس ومواقيت الصلاة")
             .setView(input)
-            .setPositiveButton("حفظ") { _, _ ->
+            .setPositiveButton("حفظ وتحديث") { _, _ ->
                 val cityQuery = input.text.toString().trim()
                 if (cityQuery.isNotEmpty()) searchAndSaveCity(cityQuery)
             }
-            .setNeutralButton("تلقائي") { _, _ ->
+            .setNeutralButton("تحديد تلقائي") { _, _ ->
                 getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit()
                     .remove(keyCityName).remove(keyCityLat).remove(keyCityLon).apply()
-                loadLocationAndWeather()
+                loadLocationWeatherAndPrayers()
             }
             .setNegativeButton("إلغاء", null)
             .show()
@@ -224,183 +362,54 @@ class MainActivity : AppCompatActivity() {
 
     private fun searchAndSaveCity(query: String) {
         Thread {
-            try {
-                val encoded = URLEncoder.encode(query, "UTF-8")
-                val url = URL("https://geocoding-api.open-meteo.com/v1/search?name=$encoded&count=1&language=ar")
-                val conn = url.openConnection() as HttpURLConnection
-                val json = JSONObject(conn.inputStream.bufferedReader().readText())
-                val results = json.optJSONArray("results")
-                if (results != null && results.length() > 0) {
-                    val first = results.getJSONObject(0)
-                    val name = first.getString("name")
-                    val lat = first.getDouble("latitude")
-                    val lon = first.getDouble("longitude")
-                    getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit()
-                        .putString(keyCityName, name)
-                        .putFloat(keyCityLat, lat.toFloat())
-                        .putFloat(keyCityLon, lon.toFloat())
-                        .apply()
-                    fetchWeatherForCoords(name, lat, lon)
-                } else {
-                    runOnUiThread { Toast.makeText(this, "لم يتم العثور على المدينة", Toast.LENGTH_SHORT).show() }
-                }
-            } catch (_: Exception) {
-                runOnUiThread { Toast.makeText(this, "تعذر الاتصال", Toast.LENGTH_SHORT).show() }
-            }
-        }.start()
-    }
-
-    // --- 2. REAL MAJOR LEAGUES MATCHES (EXACT DATE + LOCAL TIME) ---
-    private fun fetchTodayMatches(dayOffset: Int = 0) {
-        matchesDayOffset = dayOffset
-        runOnUiThread {
-            tvMatchTitle.text = "جاري جلب المباريات..."
-            tvMatchTime.text = if (dayOffset == 0) "الدوريات الكبرى • اليوم" else "الدوريات الكبرى • غداً"
-        }
-        Thread {
-            val majorLeagues = listOf(
-                "uefa.champions" to "دوري أبطال أوروبا",
-                "eng.1" to "الدوري الإنجليزي",
-                "esp.1" to "الدوري الإسباني",
-                "ita.1" to "الدوري الإيطالي",
-                "ger.1" to "الدوري الألماني",
-                "fra.1" to "الدوري الفرنسي",
-                "uefa.europa" to "الدوري الأوروبي",
-                "ksa.1" to "الدوري السعودي",
-                "uefa.nations" to "دوري الأمم الأوروبية",
-                "caf.nations" to "كأس أمم إفريقيا"
+            val encoded = URLEncoder.encode(query, "UTF-8")
+            val res = httpGetWithFallback(
+                "https://geocoding-api.open-meteo.com/v1/search?name=$encoded&count=1&language=ar",
+                "http://geocoding-api.open-meteo.com/v1/search?name=$encoded&count=1&language=ar"
             )
-
-            val cal = Calendar.getInstance()
-            cal.add(Calendar.DAY_OF_YEAR, dayOffset)
-            val queryDate = SimpleDateFormat("yyyyMMdd", Locale.US).format(cal.time)
-            val displayDate = SimpleDateFormat("dd/MM/yyyy", Locale.US).format(cal.time)
-
-            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
-            }
-            val localTimeFormat = SimpleDateFormat("HH:mm", Locale.US).apply {
-                timeZone = TimeZone.getDefault()
-            }
-
-            val parsed = mutableListOf<String>()
-            var firstTitle = ""
-            var firstTime = ""
-            var anySuccess = false
-
-            for ((code, arLeague) in majorLeagues) {
+            if (res != null) {
                 try {
-                    val url = URL("https://site.api.espn.com/apis/site/v2/sports/soccer/$code/scoreboard?dates=$queryDate")
-                    val conn = url.openConnection() as HttpURLConnection
-                    conn.connectTimeout = 5000
-                    conn.readTimeout = 5000
-                    conn.setRequestProperty("User-Agent", "Mozilla/5.0")
-                    val root = JSONObject(conn.inputStream.bufferedReader().readText())
-                    anySuccess = true
-                    val events = root.optJSONArray("events") ?: continue
-
-                    for (i in 0 until events.length()) {
-                        val ev = events.getJSONObject(i)
-                        val dateStr = ev.optString("date", "")
-                        val statusObj = ev.optJSONObject("status")?.optJSONObject("type")
-                        val state = statusObj?.optString("state", "") ?: ""
-                        val detail = statusObj?.optString("shortDetail", "") ?: ""
-
-                        val comp = ev.optJSONArray("competitions")?.optJSONObject(0)
-                        val competitors = comp?.optJSONArray("competitors")
-                        if (competitors == null || competitors.length() < 2) continue
-
-                        val t1 = competitors.getJSONObject(0)
-                        val t2 = competitors.getJSONObject(1)
-                        val n1 = t1.optJSONObject("team")?.optString("shortDisplayName", "") ?: ""
-                        val n2 = t2.optJSONObject("team")?.optString("shortDisplayName", "") ?: ""
-                        val s1 = t1.optString("score", "0")
-                        val s2 = t2.optString("score", "0")
-
-                        var kickoff = ""
-                        if (dateStr.isNotEmpty()) {
-                            try {
-                                val cleanDate = dateStr.replace(Regex(":[0-9]{2}Z$"), "Z")
-                                val dt = isoFormat.parse(cleanDate)
-                                if (dt != null) kickoff = localTimeFormat.format(dt)
-                            } catch (_: Exception) {}
-                        }
-
-                        val matchLine = when (state) {
-                            "in" -> "🔴 مباشر ($detail) | $n1 $s1 - $s2 $n2 — $arLeague"
-                            "post" -> "✅ انتهت | $n1 $s1 - $s2 $n2 — $arLeague"
-                            else -> "⏰ $kickoff | $n1 vs $n2 — $arLeague"
-                        }
-                        parsed.add(matchLine)
-
-                        if (firstTitle.isEmpty()) {
-                            firstTitle = if (state == "pre") "$n1 vs $n2" else "$n1 $s1 - $s2 $n2"
-                            firstTime = if (state == "in") "مباشر • $arLeague" else "$kickoff • $arLeague"
-                        }
+                    val results = JSONObject(res).optJSONArray("results")
+                    if (results != null && results.length() > 0) {
+                        val first = results.getJSONObject(0)
+                        val name = first.getString("name")
+                        val lat = first.getDouble("latitude")
+                        val lon = first.getDouble("longitude")
+                        getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit()
+                            .putString(keyCityName, name)
+                            .putFloat(keyCityLat, lat.toFloat())
+                            .putFloat(keyCityLon, lon.toFloat())
+                            .apply()
+                        fetchWeather(name, lat, lon)
+                        fetchPrayerTimes(lat, lon)
+                        return@Thread
                     }
                 } catch (_: Exception) {}
             }
-
             runOnUiThread {
-                todayMatchesList.clear()
-                todayMatchesList.addAll(parsed)
-                if (!anySuccess) {
-                    tvMatchTitle.text = "تعذر الاتصال بالإنترنت"
-                    tvMatchTime.text = "اضغط لإعادة المحاولة"
-                } else if (parsed.isEmpty()) {
-                    tvMatchTitle.text = if (dayOffset == 0) "لا توجد مباريات كبرى اليوم" else "لا توجد مباريات كبرى غداً"
-                    tvMatchTime.text = "$displayDate • اضغط لعرض الغد"
-                } else {
-                    tvMatchTitle.text = firstTitle
-                    tvMatchTime.text = "$firstTime (${parsed.size} مباراة)"
-                }
+                Toast.makeText(this, "لم يتم العثور على المدينة أو لا يوجد اتصال إنترنت", Toast.LENGTH_SHORT).show()
             }
         }.start()
     }
 
-    private fun showMatchesScheduleDialog() {
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.DAY_OF_YEAR, matchesDayOffset)
-        val displayDate = SimpleDateFormat("dd/MM/yyyy", Locale.US).format(cal.time)
-        val dayLabel = if (matchesDayOffset == 0) "اليوم" else "غداً"
-
-        val items = if (todayMatchesList.isNotEmpty()) {
-            todayMatchesList.toTypedArray()
-        } else {
-            arrayOf("لا توجد مباريات في الدوريات الـ 5 الكبرى أو دوري الأبطال بتاريخ $displayDate")
-        }
-
-        val toggleBtnText = if (matchesDayOffset == 0) "مباريات الغد" else "مباريات اليوم"
-        AlertDialog.Builder(this)
-            .setTitle("مباريات $dayLabel ($displayDate) — ${todayMatchesList.size}")
-            .setItems(items) { _, _ -> launchSportsOrIptv() }
-            .setPositiveButton("فتح IPTV") { _, _ -> launchSportsOrIptv() }
-            .setNeutralButton(toggleBtnText) { _, _ ->
-                fetchTodayMatches(if (matchesDayOffset == 0) 1 else 0)
-            }
-            .setNegativeButton("إغلاق", null)
-            .show()
-    }
-
-    // --- 3. REAL SYSTEM MONITOR (RAM + STORAGE + CLEANER) ---
+    // --- REAL SYSTEM MONITOR & MEMORY CLEANER ---
     private fun updateSystemStats() {
         val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val mi = ActivityManager.MemoryInfo()
         am.getMemoryInfo(mi)
         val availMb = (mi.availMem / (1024 * 1024)).toInt()
         val totalMb = (mi.totalMem / (1024 * 1024)).toInt().coerceAtLeast(1)
-        val usedMb = (totalMb - availMb).coerceAtLeast(0)
-        val usedPct = ((usedMb * 100) / totalMb).coerceIn(1, 99)
+        val usedPct = (((totalMb - availMb) * 100) / totalMb).coerceIn(5, 98)
 
-        tvRamPercent.text = "$usedPct%"
-        tvRamDetail.text = "الرام: $usedMb / $totalMb MB"
+        tvRamMain.text = "تنظيف الذاكرة • RAM $availMb MB"
+        pbRam.progress = usedPct
 
         try {
             val stat = StatFs(Environment.getDataDirectory().path)
             val freeGb = (stat.availableBlocksLong * stat.blockSizeLong).toDouble() / (1024.0 * 1024.0 * 1024.0)
-            tvStorageDetail.text = String.format(Locale.US, "التخزين: %.1f GB متاح", freeGb)
+            tvStorageDetail.text = String.format(Locale.US, "التخزين المتاح: %.1f GB  •  اضغط للتنظيف", freeGb)
         } catch (_: Exception) {
-            tvStorageDetail.text = "التخزين: جاهز"
+            tvStorageDetail.text = "اضغط لتسريع البروجكتور وتحرير الذاكرة"
         }
     }
 
@@ -444,32 +453,100 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "تم تنظيف $killedCount عملية • تحرير $freedMb MB (المتاح: $afterMb MB)", Toast.LENGTH_LONG).show()
     }
 
-    // --- 4. WIDE BANNER APPS GRID ---
-    private fun loadInstalledApps() {
-        val pm = packageManager
-        val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
-        val leanbackIntent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER) }
+    // --- ASYNC SMOOTH APP LOADING ---
+    private fun loadInstalledAppsAsync() {
+        Thread {
+            val pm = packageManager
+            val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
+            val leanbackIntent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER) }
 
-        val resolved = mutableListOf<android.content.pm.ResolveInfo>()
-        resolved.addAll(pm.queryIntentActivities(intent, 0))
-        resolved.addAll(pm.queryIntentActivities(leanbackIntent, 0))
+            val resolved = mutableListOf<android.content.pm.ResolveInfo>()
+            resolved.addAll(pm.queryIntentActivities(intent, 0))
+            resolved.addAll(pm.queryIntentActivities(leanbackIntent, 0))
 
-        val seen = HashSet<String>()
-        val list = mutableListOf<AppItem>()
-        for (ri in resolved) {
-            val pkg = ri.activityInfo.packageName
-            if (pkg == packageName || seen.contains(pkg)) continue
-            seen.add(pkg)
-            list.add(AppItem(ri.loadLabel(pm).toString(), pkg, ri.loadIcon(pm)))
-        }
-        allInstalledApps = list.sortedBy { it.label.lowercase() }
+            val seen = HashSet<String>()
+            val list = mutableListOf<AppItem>()
+            for (ri in resolved) {
+                val pkg = ri.activityInfo.packageName
+                if (pkg == packageName || seen.contains(pkg)) continue
+                seen.add(pkg)
+                list.add(AppItem(ri.loadLabel(pm).toString(), pkg, ri.loadIcon(pm)))
+            }
+            val sorted = list.sortedBy { it.label.lowercase() }
+
+            runOnUiThread {
+                allInstalledApps = sorted
+                refreshFavorites()
+                rvAllAppsGrid.adapter = AppAdapter(allInstalledApps, true, { app ->
+                    launchApp(app.packageName)
+                }, { app ->
+                    toggleFavoriteApp(app)
+                })
+            }
+        }.start()
     }
 
-    private fun setupAppsGrid() {
-        rvAllAppsGrid.layoutManager = GridLayoutManager(this, 6)
-        rvAllAppsGrid.adapter = AppAdapter(allInstalledApps) { app ->
-            launchApp(app.packageName)
+    private fun getSavedFavPackages(): MutableList<String> {
+        val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+        val saved = prefs.getString(keyFavPackages, null)
+        if (saved != null) return saved.split(",").filter { it.isNotBlank() }.toMutableList()
+
+        val defaults = listOf(
+            "com.google.android.youtube.tv",
+            "com.google.android.youtube",
+            "com.android.vending",
+            "com.netflix.ninja",
+            "com.netflix.mediaclient"
+        )
+        val matched = allInstalledApps.filter { defaults.contains(it.packageName) }.map { it.packageName }.toMutableList()
+        val iptv = allInstalledApps.firstOrNull {
+            val n = (it.label + " " + it.packageName).lowercase()
+            n.contains("iptv") || n.contains("ninja") || n.contains("smarters") || n.contains("tivimate")
         }
+        if (iptv != null && !matched.contains(iptv.packageName)) matched.add(iptv.packageName)
+        return matched
+    }
+
+    private fun refreshFavorites() {
+        val favPkgs = getSavedFavPackages()
+        val favList = allInstalledApps.filter { favPkgs.contains(it.packageName) }.toMutableList()
+        favList.add(AppItem("ملفاتي", "", null, SpecialAction.FILES, R.drawable.ic_folder))
+        favList.add(AppItem("إضافة", "", null, SpecialAction.ADD_APP, R.drawable.ic_add))
+
+        rvFavoriteApps.adapter = AppAdapter(favList, false, { item ->
+            when (item.specialAction) {
+                SpecialAction.FILES -> openFileManager()
+                SpecialAction.ADD_APP -> showAddFavDialog()
+                SpecialAction.NONE -> launchApp(item.packageName)
+            }
+        }, { item ->
+            if (item.specialAction == SpecialAction.NONE) toggleFavoriteApp(item)
+        })
+    }
+
+    private fun toggleFavoriteApp(app: AppItem) {
+        val prefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+        val list = getSavedFavPackages()
+        val msg = if (list.contains(app.packageName)) {
+            list.remove(app.packageName)
+            "تمت إزالة ${app.label} من الشريط الرئيسي"
+        } else {
+            list.add(app.packageName)
+            "تمت إضافة ${app.label} إلى الشريط الرئيسي"
+        }
+        prefs.edit().putString(keyFavPackages, list.joinToString(",")).apply()
+        refreshFavorites()
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showAddFavDialog() {
+        if (allInstalledApps.isEmpty()) return
+        val names = allInstalledApps.map { it.label }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("إضافة تطبيق إلى الشريط الرئيسي")
+            .setItems(names) { _, which -> toggleFavoriteApp(allInstalledApps[which]) }
+            .setNegativeButton("إلغاء", null)
+            .show()
     }
 
     private fun launchApp(pkg: String) {
@@ -481,20 +558,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "تعذر فتح التطبيق", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun launchSportsOrIptv() {
-        val iptv = allInstalledApps.firstOrNull {
-            val n = (it.label + " " + it.packageName).lowercase()
-            n.contains("iptv") || n.contains("ninja") || n.contains("smarters") || n.contains("tivimate") || n.contains("kodi")
-        }
-        if (iptv != null) {
-            launchApp(iptv.packageName)
-            return
-        }
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/results?search_query=مباريات+اليوم+مباشر")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        } catch (_: Exception) {}
     }
 
     private fun openFileManager() {
@@ -552,6 +615,6 @@ class MainActivity : AppCompatActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        // Stay on launcher
+        // Behave like official system home launcher
     }
 }

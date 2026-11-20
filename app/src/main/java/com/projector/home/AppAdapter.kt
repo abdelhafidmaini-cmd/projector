@@ -10,7 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 
 class AppAdapter(
     private var items: List<AppItem>,
-    private val onClick: (AppItem) -> Unit
+    private val isGrid: Boolean,
+    private val onClick: (AppItem) -> Unit,
+    private val onLongClick: ((AppItem) -> Unit)? = null
 ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -19,10 +21,11 @@ class AppAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_app_banner, parent, false)
+        val layoutId = if (isGrid) R.layout.item_grid_banner else R.layout.item_dock_banner
+        val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
         view.setOnFocusChangeListener { v, hasFocus ->
-            val scale = if (hasFocus) 1.07f else 1.0f
-            v.animate().scaleX(scale).scaleY(scale).setDuration(110).start()
+            val scale = if (hasFocus) 1.06f else 1.0f
+            v.animate().scaleX(scale).scaleY(scale).setDuration(100).start()
         }
         return ViewHolder(view)
     }
@@ -30,13 +33,28 @@ class AppAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         holder.tvName.text = item.label
-        if (item.icon != null) {
-            holder.ivIcon.setImageDrawable(item.icon)
-        } else {
-            holder.ivIcon.setImageDrawable(ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_apps))
+        when {
+            item.customIconRes != null -> {
+                holder.ivIcon.setImageDrawable(ContextCompat.getDrawable(holder.itemView.context, item.customIconRes))
+            }
+            item.icon != null -> {
+                holder.ivIcon.setImageDrawable(item.icon)
+            }
+            else -> {
+                holder.ivIcon.setImageDrawable(ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_apps))
+            }
         }
         holder.itemView.setOnClickListener { onClick(item) }
+        holder.itemView.setOnLongClickListener {
+            onLongClick?.invoke(item)
+            true
+        }
     }
 
     override fun getItemCount(): Int = items.size
+
+    fun updateData(newItems: List<AppItem>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
 }
