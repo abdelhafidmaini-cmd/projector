@@ -2,8 +2,8 @@
 <resources>
     <style name="Theme.CinemaHome" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowFullscreen">true</item>
-        <item name="android:windowBackground">@drawable/bg_gtv_ambient</item>
-        <item name="colorPrimary">#E8EAED</item>
-        <item name="colorAccent">#8AB4F8</item>
+        <item name="android:windowBackground">@drawable/bg_cyber_cinema</item>
+        <item name="colorPrimary">#38BDF8</item>
+        <item name="colorAccent">#EF4444</item>
     </style>
 </resources>
